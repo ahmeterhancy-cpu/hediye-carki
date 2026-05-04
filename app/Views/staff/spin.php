@@ -17,7 +17,7 @@
 #wheelStage {
   position: relative;
   display: inline-block;
-  padding: clamp(28px, 4vw, 48px);
+  padding: clamp(40px, 5.5vw, 70px);
   border-radius: 50%;
   background:
     radial-gradient(circle at 50% 30%, rgba(255,215,140,0.25) 0%, transparent 55%),
@@ -124,43 +124,44 @@
     <svg id="ringText" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet"
          xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <!-- ÜST kavis: sol → üst → sağ (sweep=0 = counter-clockwise = Y küçülür) -->
+        <!-- Path radius 92: halka ortası (wheelStage padding alanı içinde) -->
+        <!-- ÜST kavis: sol → sağ, ÜSTTEN (sweep=0). Text side="right" ile dış tarafta dik. -->
         <path id="arcTop"
-              d="M 14,100 A 86,86 0 0,0 186,100"
+              d="M 8,100 A 92,92 0 0,0 192,100"
               fill="none"/>
-        <!-- ALT kavis: sağ → alt → sol (text dik dursun diye sağdan sola, sweep=0) -->
+        <!-- ALT kavis: sol → sağ, ALTTAN (sweep=1). Text default tarafta dik. -->
         <path id="arcBottom"
-              d="M 186,100 A 86,86 0 0,0 14,100"
+              d="M 8,100 A 92,92 0 0,1 192,100"
               fill="none"/>
 
         <linearGradient id="ringTextGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stop-color="#FFFBEA"/>
+          <stop offset="0"   stop-color="#FFFBEA"/>
           <stop offset="0.5" stop-color="#FFD86B"/>
-          <stop offset="1" stop-color="#C28200"/>
+          <stop offset="1"   stop-color="#C28200"/>
         </linearGradient>
       </defs>
 
-      <!-- ÜST: firma adı (büyük) -->
+      <!-- ÜST: firma adı — side="right" ile path dış tarafına yazılır (dik) -->
       <text font-family="system-ui, sans-serif"
             font-weight="900"
-            font-size="14"
-            letter-spacing="3"
+            font-size="9"
+            letter-spacing="1.8"
             fill="url(#ringTextGrad)"
-            stroke="#3a2400" stroke-width="0.5"
+            stroke="#2a1800" stroke-width="0.35"
             paint-order="stroke fill">
-        <textPath href="#arcTop" startOffset="50%" text-anchor="middle">
+        <textPath href="#arcTop" side="right" startOffset="50%" text-anchor="middle">
           <?= htmlspecialchars($turkUpper($headerTitle), ENT_QUOTES, 'UTF-8') ?>
         </textPath>
       </text>
 
       <?php if (!empty($eventTitle) && trim($eventTitle) !== trim($headerTitle)): ?>
-      <!-- ALT: etkinlik adı (küçük) — path sağdan sola tanımlı, text dik durur -->
+      <!-- ALT: etkinlik adı — alt yarıda default tarafta dik durur -->
       <text font-family="system-ui, sans-serif"
             font-weight="700"
-            font-size="10"
-            letter-spacing="2"
+            font-size="7.5"
+            letter-spacing="1.5"
             fill="rgba(255,235,150,0.95)"
-            stroke="#3a2400" stroke-width="0.4"
+            stroke="#2a1800" stroke-width="0.3"
             paint-order="stroke fill">
         <textPath href="#arcBottom" startOffset="50%" text-anchor="middle">
           <?= htmlspecialchars($turkUpper($eventTitle), ENT_QUOTES, 'UTF-8') ?>
