@@ -36,7 +36,10 @@
     </div>
 
     <form method="POST" action="/staff/customer" class="rounded-2xl p-6 space-y-3 border-2 border-yellow-400"
-          style="background-color: #ffffff; box-shadow: 0 0 60px rgba(255,180,40,0.45), 0 20px 50px rgba(0,0,0,0.7);">
+          style="background-color: rgba(255,255,255,0.92);
+                 backdrop-filter: blur(10px);
+                 -webkit-backdrop-filter: blur(10px);
+                 box-shadow: 0 0 60px rgba(255,180,40,0.4), 0 20px 50px rgba(0,0,0,0.6);">
       <?= \App\Core\Csrf::field() ?>
 
       <div class="grid grid-cols-2 gap-3">

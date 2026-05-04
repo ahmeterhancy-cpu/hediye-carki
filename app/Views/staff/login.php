@@ -15,7 +15,10 @@
   <?php endif; ?>
 
   <div class="rounded-3xl p-6 border-2 border-yellow-400"
-       style="background-color: #ffffff; box-shadow: 0 0 60px rgba(255,180,40,0.45), 0 20px 50px rgba(0,0,0,0.7);">
+       style="background-color: rgba(255,255,255,0.92);
+              backdrop-filter: blur(10px);
+              -webkit-backdrop-filter: blur(10px);
+              box-shadow: 0 0 60px rgba(255,180,40,0.4), 0 20px 50px rgba(0,0,0,0.6);">
     <form method="POST" action="/staff/login" id="pinForm">
       <?= \App\Core\Csrf::field() ?>
       <input type="hidden" name="pin" id="pinValue">

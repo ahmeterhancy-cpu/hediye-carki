@@ -34,7 +34,10 @@
   <?php endif; ?>
 
   <div class="rounded-3xl p-8 border-4 border-yellow-400"
-       style="background-color: #ffffff; box-shadow: 0 0 80px 10px rgba(255,200,50,0.55), 0 30px 60px rgba(0,0,0,0.8);">
+       style="background-color: rgba(255,255,255,0.92);
+              backdrop-filter: blur(10px);
+              -webkit-backdrop-filter: blur(10px);
+              box-shadow: 0 0 80px 10px rgba(255,200,50,0.45), 0 30px 60px rgba(0,0,0,0.7);">
     <p class="text-slate-700 text-base font-bold mb-2 tracking-wide">TEBRİKLER 🎉</p>
 
     <p class="text-orange-700 text-lg font-semibold mb-3">
@@ -68,8 +71,11 @@
   <form method="POST" action="/staff/new" class="mt-6">
     <?= \App\Core\Csrf::field() ?>
     <button type="submit"
-            class="bg-white text-orange-700 hover:bg-yellow-100 active:scale-95 transition px-10 py-4 rounded-2xl text-lg font-black border-2 border-yellow-400"
-            style="box-shadow: 0 0 30px rgba(255,200,50,0.6), 0 10px 30px rgba(0,0,0,0.5);">
+            class="text-orange-700 hover:bg-yellow-100 active:scale-95 transition px-10 py-4 rounded-2xl text-lg font-black border-2 border-yellow-400"
+            style="background-color: rgba(255,255,255,0.92);
+                   backdrop-filter: blur(10px);
+                   -webkit-backdrop-filter: blur(10px);
+                   box-shadow: 0 0 30px rgba(255,200,50,0.5), 0 10px 30px rgba(0,0,0,0.4);">
       + Yeni Müşteri
     </button>
   </form>
