@@ -116,6 +116,34 @@
   <p class="text-white/90 text-sm mt-5 drop-shadow">Müşteri butona dokunsun</p>
 </div>
 
+<!-- ── Modal ─────────────────────────────────────────────────────── -->
+<div id="spinModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4"
+     style="background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);">
+  <div class="rounded-3xl border-4 border-yellow-400 max-w-md w-full p-7 text-center transform transition-transform"
+       id="spinModalBox"
+       style="background: rgba(255,255,255,0.96);
+              backdrop-filter: blur(12px);
+              box-shadow: 0 0 80px 10px rgba(255,200,50,0.55), 0 30px 60px rgba(0,0,0,0.7);
+              animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);">
+    <div id="modalIcon" class="text-7xl mb-3"></div>
+    <h2 id="modalTitle" class="text-2xl font-black text-slate-800 mb-2"></h2>
+    <p id="modalMsg" class="text-slate-700 text-base mb-6"></p>
+    <button id="modalBtn" type="button"
+            class="px-10 py-3 rounded-2xl text-white text-lg font-black transition active:scale-95"
+            style="background: linear-gradient(135deg, #FBBF24, #EF4444);
+                   box-shadow: 0 8px 20px rgba(0,0,0,0.4);">
+      Tamam
+    </button>
+  </div>
+</div>
+
+<style>
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.7) translateY(-30px); }
+  to   { opacity: 1; transform: scale(1)   translateY(0); }
+}
+</style>
+
 <script src="/assets/js/wheel.js"></script>
 <script src="/assets/js/confetti.js"></script>
 <script>
@@ -125,50 +153,93 @@ const csrfToken = <?= json_encode(\App\Core\Csrf::token()) ?>;
 const wheel   = new Wheel(document.getElementById('wheelCanvas'), prizes);
 const spinBtn = document.getElementById('spinBtn');
 
+// ── Custom modal ────────────────────────────────────────────
+const modalEl   = document.getElementById('spinModal');
+const modalIcon = document.getElementById('modalIcon');
+const modalTitle = document.getElementById('modalTitle');
+const modalMsg  = document.getElementById('modalMsg');
+const modalBtn  = document.getElementById('modalBtn');
+
+function showModal({ icon, title, message, redirectTo, buttonText = 'Tamam' }) {
+  modalIcon.textContent  = icon;
+  modalTitle.textContent = title;
+  modalMsg.textContent   = message;
+  modalBtn.textContent   = buttonText;
+  modalEl.classList.remove('hidden');
+
+  return new Promise(resolve => {
+    const close = () => {
+      modalEl.classList.add('hidden');
+      modalBtn.removeEventListener('click', close);
+      if (redirectTo) location.href = redirectTo;
+      resolve();
+    };
+    modalBtn.addEventListener('click', close, { once: true });
+  });
+}
+
+const errorMap = {
+  no_stock: {
+    icon: '📦', title: 'Stok Tükendi',
+    message: 'Üzgünüz, hediye stoğu kalmadı. Lütfen görevliyle iletişime geçin.',
+  },
+  invalid_session: {
+    icon: '🔄', title: 'Oturum Süresi Doldu',
+    message: 'Lütfen baştan başlayın.', redirectTo: '/staff',
+  },
+  invalid_csrf: {
+    icon: '🔒', title: 'Güvenlik Hatası',
+    message: 'Sayfayı yenileyin ve tekrar deneyin.', redirectTo: '/staff',
+  },
+  already_spun: {
+    icon: '✋', title: 'Zaten Çevrildi',
+    message: 'Bu müşteri çarkı bir kez çevirmiş.', redirectTo: '/staff',
+  },
+  server_error: {
+    icon: '⚠️', title: 'Sistem Hatası',
+    message: 'Bir sorun oluştu. Lütfen tekrar deneyin.',
+  },
+  network_error: {
+    icon: '📡', title: 'Bağlantı Hatası',
+    message: 'İnternet bağlantınızı kontrol edip tekrar deneyin.',
+  },
+};
+
 spinBtn.addEventListener('click', async () => {
   spinBtn.disabled = true;
   spinBtn.textContent = '...';
 
   try {
-    const res = await fetch('/staff/spin/execute', {
+    const res  = await fetch('/staff/spin/execute', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: '_csrf=' + encodeURIComponent(csrfToken),
     });
-
     const data = await res.json();
 
     if (!data.ok) {
-      const messages = {
-        no_stock:        'Üzgünüz, hediye stoğu tükendi.',
-        invalid_session: 'Oturum hatası. Lütfen baştan başlayın.',
-        invalid_csrf:    'Güvenlik hatası. Lütfen baştan başlayın.',
-        already_spun:    'Bu müşteri zaten çevirdi.',
-        server_error:    'Sistem hatası.',
+      const cfg = errorMap[data.error] || {
+        icon: '⚠️', title: 'Hata', message: data.error || 'Bilinmeyen hata',
       };
-      alert(messages[data.error] || ('Hata: ' + data.error));
+      await showModal(cfg);
 
-      if (['invalid_session','invalid_csrf','already_spun'].includes(data.error)) {
-        location.href = '/staff';
-      } else {
+      if (!cfg.redirectTo) {
         spinBtn.disabled = false;
-        spinBtn.textContent = 'ÇEVİR!';
+        spinBtn.textContent = 'ÇEVİR';
       }
       return;
     }
 
     try { new Audio('/assets/sounds/spin.mp3').play(); } catch(e) {}
-
     await wheel.spinTo(data.target_angle, 5000);
-
     try { new Audio('/assets/sounds/win.mp3').play(); } catch(e) {}
 
     location.href = '/staff/win/' + data.participant_id;
 
   } catch (e) {
-    alert('Bağlantı hatası. Lütfen tekrar deneyin.');
+    await showModal(errorMap.network_error);
     spinBtn.disabled = false;
-    spinBtn.textContent = 'ÇEVİR!';
+    spinBtn.textContent = 'ÇEVİR';
   }
 });
 </script>
