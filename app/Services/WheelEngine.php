@@ -63,13 +63,20 @@ class WheelEngine
 
     public function calculateTargetAngle(int $winnerId, array $allActivePrizes): float
     {
+        // Pointer ekranın üstünde sabit (canvas koordinatlarında 270°).
+        // Çark `rotation` derece döndüğünde dilim i'nin merkez açısı:
+        //     (i*slice + slice/2 + rotation) mod 360
+        // Bu değer 270 olmalı → rotation = (270 - center) mod 360
+        // 5 tam tur ekleyerek görsel efekt için yeterli dönüş garantilenir.
+
         $count      = count($allActivePrizes);
         $sliceAngle = 360.0 / $count;
 
         foreach ($allActivePrizes as $idx => $prize) {
             if ((int)$prize['id'] === $winnerId) {
-                $center = $idx * $sliceAngle + ($sliceAngle / 2);
-                return 360.0 * 5 + (360.0 - $center);
+                $center   = $idx * $sliceAngle + ($sliceAngle / 2);
+                $rotation = fmod(270.0 - $center + 360.0, 360.0);
+                return 360.0 * 5 + $rotation;
             }
         }
         return 0.0;
