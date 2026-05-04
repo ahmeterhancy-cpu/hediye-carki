@@ -64,9 +64,11 @@
                   class="border-2 border-slate-300 rounded-xl px-2 py-3 text-slate-800 text-base focus:outline-none focus:border-orange-500">
             <option value="+90">🇹🇷 +90</option>
             <option value="+357">🇨🇾 +357</option>
+            <option value="+359">🇧🇬 +359</option>
+            <option value="+30">🇬🇷 +30</option>
             <option value="+44">🇬🇧 +44</option>
-            <option value="+7">🇷🇺 +7</option>
             <option value="+49">🇩🇪 +49</option>
+            <option value="+7">🇷🇺 +7</option>
           </select>
           <input type="tel" name="phone" required inputmode="numeric"
                  class="flex-1 border-2 border-slate-300 rounded-xl px-3 py-3 text-slate-800 text-lg focus:outline-none focus:border-orange-500"
