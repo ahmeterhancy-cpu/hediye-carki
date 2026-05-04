@@ -1,9 +1,27 @@
 <?php $pageTitle = 'Çark'; ob_start(); ?>
 <style>
+/* Çark sahnesi — arka plandan ayrım için büyük yarı saydam disk */
+#wheelStage {
+  position: relative;
+  display: inline-block;
+  padding: clamp(28px, 4vw, 48px);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255,215,140,0.25) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.85) 80%);
+  box-shadow:
+    0 0 80px 20px rgba(255,180,60,0.35),
+    0 0 0 6px rgba(255,215,0,0.4),
+    0 0 0 14px rgba(0,0,0,0.65),
+    0 30px 60px rgba(0,0,0,0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
 #wheelWrapper {
   position: relative;
   display: inline-block;
-  width: min(85vw, 75vh, 640px);
+  width: min(82vw, 68vh, 600px);
   aspect-ratio: 1 / 1;
 }
 #wheelCanvas { width: 100%; height: 100%; display: block; }
@@ -52,57 +70,50 @@
   filter: drop-shadow(0 4px 6px rgba(0,0,0,0.55));
 }
 
-/* Çark glow */
-#wheelWrapper::before {
-  content: '';
-  position: absolute;
-  inset: -10px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,215,0,0.35) 0%, transparent 65%);
-  z-index: -1;
-  animation: wheelPulse 2.5s ease-in-out infinite;
+/* Stage glow pulse */
+@keyframes stagePulse {
+  0%, 100% { box-shadow: 0 0 80px 20px rgba(255,180,60,0.35), 0 0 0 6px rgba(255,215,0,0.4),  0 0 0 14px rgba(0,0,0,0.65), 0 30px 60px rgba(0,0,0,0.7); }
+  50%      { box-shadow: 0 0 120px 30px rgba(255,180,60,0.55), 0 0 0 6px rgba(255,235,120,0.7), 0 0 0 14px rgba(0,0,0,0.65), 0 30px 60px rgba(0,0,0,0.7); }
 }
-@keyframes wheelPulse {
-  0%, 100% { opacity: 0.55; transform: scale(1); }
-  50%      { opacity: 0.85; transform: scale(1.04); }
-}
+#wheelStage { animation: stagePulse 3s ease-in-out infinite; }
 </style>
 
 <div class="text-center w-full max-w-3xl">
 
-  <p class="text-white drop-shadow text-lg md:text-xl mb-2">
-    <strong><?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'], ENT_QUOTES, 'UTF-8') ?></strong>
-    <span class="opacity-70">·</span>
-    <span class="opacity-80 text-sm"><?= htmlspecialchars($customer['phone'], ENT_QUOTES, 'UTF-8') ?></span>
-  </p>
-
-  <div id="wheelWrapper">
-    <canvas id="wheelCanvas" width="640" height="640"></canvas>
-    <button id="spinBtn">ÇEVİR</button>
-
-    <!-- 3D pointer (SVG) -->
-    <svg id="pointer" viewBox="0 0 50 80" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="ptrGrad" x1="0" x2="1" y1="0" y2="0">
-          <stop offset="0"   stop-color="#B71C1C"/>
-          <stop offset="0.5" stop-color="#EF5350"/>
-          <stop offset="1"   stop-color="#7F0000"/>
-        </linearGradient>
-        <linearGradient id="ptrGold" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stop-color="#FFE9A0"/>
-          <stop offset="1" stop-color="#C28200"/>
-        </linearGradient>
-      </defs>
-      <!-- Çerçeve (altın) -->
-      <path d="M5 0 H45 V50 L25 78 L5 50 Z" fill="url(#ptrGold)" stroke="#5c3a00" stroke-width="2"/>
-      <!-- İç (kırmızı) -->
-      <path d="M9 4 H41 V48 L25 70 L9 48 Z" fill="url(#ptrGrad)"/>
-      <!-- Parlak nokta -->
-      <ellipse cx="18" cy="14" rx="6" ry="4" fill="rgba(255,255,255,0.45)"/>
-    </svg>
+  <div class="inline-block bg-black/55 backdrop-blur-md border border-white/15 rounded-full px-5 py-2 mb-5 shadow-xl">
+    <span class="text-white font-bold text-base md:text-lg">
+      <?= htmlspecialchars($customer['first_name'] . ' ' . $customer['last_name'], ENT_QUOTES, 'UTF-8') ?>
+    </span>
+    <span class="text-white/50 mx-2">·</span>
+    <span class="text-white/80 text-sm"><?= htmlspecialchars($customer['phone'], ENT_QUOTES, 'UTF-8') ?></span>
   </div>
 
-  <p class="text-white/80 text-sm mt-4">Müşteri butona dokunsun</p>
+  <div id="wheelStage">
+    <div id="wheelWrapper">
+      <canvas id="wheelCanvas" width="640" height="640"></canvas>
+      <button id="spinBtn">ÇEVİR</button>
+
+      <!-- 3D pointer (SVG) -->
+      <svg id="pointer" viewBox="0 0 50 80" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ptrGrad" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0"   stop-color="#B71C1C"/>
+            <stop offset="0.5" stop-color="#EF5350"/>
+            <stop offset="1"   stop-color="#7F0000"/>
+          </linearGradient>
+          <linearGradient id="ptrGold" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0" stop-color="#FFE9A0"/>
+            <stop offset="1" stop-color="#C28200"/>
+          </linearGradient>
+        </defs>
+        <path d="M5 0 H45 V50 L25 78 L5 50 Z" fill="url(#ptrGold)" stroke="#5c3a00" stroke-width="2"/>
+        <path d="M9 4 H41 V48 L25 70 L9 48 Z" fill="url(#ptrGrad)"/>
+        <ellipse cx="18" cy="14" rx="6" ry="4" fill="rgba(255,255,255,0.45)"/>
+      </svg>
+    </div>
+  </div>
+
+  <p class="text-white/90 text-sm mt-5 drop-shadow">Müşteri butona dokunsun</p>
 </div>
 
 <script src="/assets/js/wheel.js"></script>

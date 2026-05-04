@@ -33,7 +33,8 @@
     <div class="text-8xl mb-4">🎁</div>
   <?php endif; ?>
 
-  <div class="bg-white/95 rounded-3xl shadow-2xl p-8">
+  <div class="bg-white/98 rounded-3xl p-8 border-4 border-yellow-400/50"
+       style="box-shadow: 0 0 80px 10px rgba(255,200,50,0.4), 0 30px 60px rgba(0,0,0,0.7);">
     <p class="text-slate-500 text-base font-semibold mb-2">TEBRİKLER 🎉</p>
 
     <p class="text-orange-600 text-base mb-2">

@@ -14,7 +14,8 @@
     <?php unset($_SESSION['staff_error']); ?>
   <?php endif; ?>
 
-  <div class="bg-white/95 shadow-2xl rounded-3xl p-6">
+  <div class="bg-white/97 rounded-3xl p-6 border-2 border-yellow-400/40"
+       style="box-shadow: 0 0 60px rgba(255,180,40,0.35), 0 20px 50px rgba(0,0,0,0.6);">
     <form method="POST" action="/staff/login" id="pinForm">
       <?= \App\Core\Csrf::field() ?>
       <input type="hidden" name="pin" id="pinValue">
