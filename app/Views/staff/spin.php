@@ -1,4 +1,17 @@
-<?php $pageTitle = 'Çark'; ob_start(); ?>
+<?php
+  $pageTitle = 'Çark';
+  if (!isset($settings)) $settings = \App\Models\Settings::all();
+  $companyName = trim($settings['company_name'] ?? '');
+  $eventTitle  = $settings['event_title'] ?? 'Hediye Çarkı';
+  $headerTitle = $companyName !== '' ? $companyName : $eventTitle;
+
+  // Türkçe-aware uppercase (i→İ, ı→I, diğer karakterler için mb_strtoupper)
+  $turkUpper = function (string $s): string {
+      $s = strtr($s, ['i' => 'İ', 'ı' => 'I']);
+      return mb_strtoupper($s, 'UTF-8');
+  };
+  ob_start();
+?>
 <style>
 /* Çark sahnesi — arka plandan ayrım için büyük yarı saydam disk */
 #wheelStage {
@@ -78,14 +91,17 @@
 #wheelStage { animation: stagePulse 3s ease-in-out infinite; }
 
 /* Halkadaki kavisli yazı — sürekli yavaş dönüş */
+#wheelStage { position: relative; }
 #ringText {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
+  z-index: 4;                    /* Çark canvas'ı (z 0) üzerinde, pointer (z 5+) altında */
   animation: ringSpin 40s linear infinite;
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.85));
+  overflow: visible;
 }
 @keyframes ringSpin {
   from { transform: rotate(0deg);   }
@@ -108,14 +124,14 @@
     <svg id="ringText" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet"
          xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <!-- Üstte yarı çember (saat 9 → 12 → 3) -->
+        <!-- ÜST kavis: sol → üst → sağ (sweep=0 = counter-clockwise = Y küçülür) -->
         <path id="arcTop"
-              d="M 12,100 A 88,88 0 0 1 188,100"
+              d="M 14,100 A 86,86 0 0,0 186,100"
               fill="none"/>
-        <!-- Altta yarı çember (saat 9 → 6 → 3) -->
+        <!-- ALT kavis: sağ → alt → sol (text dik dursun diye sağdan sola, sweep=0) -->
         <path id="arcBottom"
-              d="M 14,100 A 86,86 0 0 0 186,100"
-              fill="none" transform="rotate(180 100 100)"/>
+              d="M 186,100 A 86,86 0 0,0 14,100"
+              fill="none"/>
 
         <linearGradient id="ringTextGrad" x1="0" x2="0" y1="0" y2="1">
           <stop offset="0" stop-color="#FFFBEA"/>
@@ -124,28 +140,30 @@
         </linearGradient>
       </defs>
 
+      <!-- ÜST: firma adı (büyük) -->
       <text font-family="system-ui, sans-serif"
             font-weight="900"
-            font-size="11"
-            letter-spacing="2"
+            font-size="14"
+            letter-spacing="3"
             fill="url(#ringTextGrad)"
-            stroke="#5c3a00" stroke-width="0.4"
+            stroke="#3a2400" stroke-width="0.5"
             paint-order="stroke fill">
         <textPath href="#arcTop" startOffset="50%" text-anchor="middle">
-          <?= htmlspecialchars(strtoupper($headerTitle), ENT_QUOTES, 'UTF-8') ?>
+          <?= htmlspecialchars($turkUpper($headerTitle), ENT_QUOTES, 'UTF-8') ?>
         </textPath>
       </text>
 
       <?php if (!empty($eventTitle) && trim($eventTitle) !== trim($headerTitle)): ?>
+      <!-- ALT: etkinlik adı (küçük) — path sağdan sola tanımlı, text dik durur -->
       <text font-family="system-ui, sans-serif"
             font-weight="700"
-            font-size="8"
-            letter-spacing="1.5"
-            fill="rgba(255,235,150,0.9)"
-            stroke="#3a2400" stroke-width="0.3"
+            font-size="10"
+            letter-spacing="2"
+            fill="rgba(255,235,150,0.95)"
+            stroke="#3a2400" stroke-width="0.4"
             paint-order="stroke fill">
         <textPath href="#arcBottom" startOffset="50%" text-anchor="middle">
-          <?= htmlspecialchars(strtoupper($eventTitle), ENT_QUOTES, 'UTF-8') ?>
+          <?= htmlspecialchars($turkUpper($eventTitle), ENT_QUOTES, 'UTF-8') ?>
         </textPath>
       </text>
       <?php endif; ?>
