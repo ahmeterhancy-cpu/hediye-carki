@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS prizes (
+  id            INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  name          VARCHAR(150) NOT NULL,
+  brand_name    VARCHAR(100),
+  logo_path     VARCHAR(255),
+  color_hex     CHAR(7) DEFAULT '#FFB400',
+  weight        INT UNSIGNED DEFAULT 10,
+  display_order INT DEFAULT 0,
+  is_active     TINYINT(1) DEFAULT 1,
+  created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

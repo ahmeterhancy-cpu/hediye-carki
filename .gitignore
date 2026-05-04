@@ -1,0 +1,7 @@
+.env
+vendor/
+storage/logs/*.log
+storage/exports/*.xlsx
+storage/uploads/*
+!storage/uploads/.gitkeep
+composer.lock
