@@ -77,20 +77,21 @@ spinBtn.addEventListener('click', async () => {
     const data = await res.json();
 
     if (!data.ok) {
+      // CSRF/session sorunlarında sessizce baştan başlat
+      const resetErrors = ['invalid_csrf', 'invalid_session', 'code_consumed'];
+      if (resetErrors.includes(data.error)) {
+        await fetch('/spin/reset', { method: 'POST' }).catch(() => {});
+        location.href = '/';
+        return;
+      }
+
       const messages = {
-        no_stock:        'Üzgünüz, hediye stoğu tükendi. Lütfen görevliye haber verin.',
-        invalid_session: 'Oturum süresi doldu. Lütfen baştan başlayın.',
-        code_consumed:   'Bu kod zaten kullanılmış.',
-        invalid_csrf:    'Güvenlik hatası. Sayfayı yenileyin.',
-        server_error:    'Sistem hatası. Lütfen görevliye haber verin.',
+        no_stock:     'Üzgünüz, hediye stoğu tükendi. Lütfen görevliye haber verin.',
+        server_error: 'Sistem hatası. Lütfen görevliye haber verin.',
       };
       alert(messages[data.error] || ('Hata: ' + data.error));
-      if (data.error === 'invalid_session' || data.error === 'code_consumed') {
-        location.href = '/';
-      } else {
-        spinBtn.disabled = false;
-        spinBtn.textContent = 'ÇEVİR!';
-      }
+      spinBtn.disabled = false;
+      spinBtn.textContent = 'ÇEVİR!';
       return;
     }
 
