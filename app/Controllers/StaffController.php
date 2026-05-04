@@ -7,9 +7,12 @@ use App\Core\Csrf;
 use App\Core\RateLimit;
 use App\Core\Response;
 use App\Models\AuditLog;
+use App\Models\Participant;
+use App\Models\Prize;
+use App\Models\Settings;
 use App\Models\User;
-use App\Services\CodeService;
 use App\Services\EligibilityChecker;
+use App\Services\WheelEngine;
 
 class StaffController
 {
@@ -17,6 +20,8 @@ class StaffController
     {
         return $_SERVER['REMOTE_ADDR'] ?? '';
     }
+
+    // ── Login / Logout ────────────────────────────────────────────────
 
     public function loginForm(): void
     {
@@ -62,61 +67,190 @@ class StaffController
         Response::redirect('/staff/login');
     }
 
-    public function approveForm(): void
+    // ── Müşteri kayıt formu ──────────────────────────────────────────
+
+    public function customerForm(): void
     {
         Auth::staffCheck();
-        require __DIR__ . '/../Views/staff/approve.php';
+        $error    = $_SESSION['staff_error'] ?? null;
+        $message  = $_SESSION['staff_message'] ?? null;
+        $settings = Settings::all();
+        unset($_SESSION['staff_error'], $_SESSION['staff_message']);
+
+        $checker = new EligibilityChecker();
+        $eventCheck = $checker->eventIsOpen();
+
+        require __DIR__ . '/../Views/staff/customer_form.php';
     }
 
-    public function approvePost(): void
+    public function customerSubmit(): void
     {
         Auth::staffCheck();
         Csrf::check();
 
         $checker = new EligibilityChecker();
-        $check   = $checker->eventIsOpen();
+        $eventCheck = $checker->eventIsOpen();
 
-        if (!$check['ok']) {
-            $_SESSION['staff_error'] = match($check['reason']) {
+        if (!$eventCheck['ok']) {
+            $_SESSION['staff_error'] = match($eventCheck['reason']) {
                 'EVENT_INACTIVE' => 'Etkinlik şu anda aktif değil.',
                 'OUT_OF_HOURS'   => 'Etkinlik saatleri dışındasınız.',
-                default          => 'Onay verilemiyor.',
+                default          => 'Çekiliş yapılamıyor.',
             };
             Response::redirect('/staff');
         }
 
+        $firstName = trim($_POST['first_name'] ?? '');
+        $lastName  = trim($_POST['last_name']  ?? '');
+        $phone     = preg_replace('/\D/', '', trim($_POST['phone'] ?? ''));
+        $prefix    = trim($_POST['phone_prefix'] ?? '+90');
+        $kvkk      = $_POST['kvkk'] ?? '';
         $receiptNo = trim($_POST['receipt_no'] ?? '') ?: null;
-        $amount    = isset($_POST['receipt_amount']) && $_POST['receipt_amount'] !== '' ? (float)$_POST['receipt_amount'] : null;
+        $receiptAmt = isset($_POST['receipt_amount']) && $_POST['receipt_amount'] !== ''
+            ? (float)$_POST['receipt_amount'] : null;
+
+        if (!$firstName || !$lastName || strlen($phone) < 7) {
+            $_SESSION['staff_error'] = 'Lütfen ad, soyad ve telefonu eksiksiz doldurun.';
+            Response::redirect('/staff');
+        }
+
+        if (!$kvkk) {
+            $_SESSION['staff_error'] = 'KVKK onayı zorunludur.';
+            Response::redirect('/staff');
+        }
+
+        $fullPhone = $prefix . $phone;
+        $check     = $checker->canParticipate($fullPhone);
+
+        if (!$check['ok']) {
+            $_SESSION['staff_error'] = $check['message'];
+            Response::redirect('/staff');
+        }
+
+        // Müşteri verisini session'a yaz, çark sayfasına geç
+        $_SESSION['pending_customer'] = [
+            'first_name'     => $firstName,
+            'last_name'      => $lastName,
+            'phone'          => $fullPhone,
+            'receipt_no'     => $receiptNo,
+            'receipt_amount' => $receiptAmt,
+        ];
+
+        Response::redirect('/staff/spin');
+    }
+
+    // ── Çark ekranı ───────────────────────────────────────────────────
+
+    public function spin(): void
+    {
+        Auth::staffCheck();
+        if (empty($_SESSION['pending_customer'])) Response::redirect('/staff');
+
+        $prizes   = Prize::allActive();
+        $settings = Settings::all();
+        $customer = $_SESSION['pending_customer'];
+
+        require __DIR__ . '/../Views/staff/spin.php';
+    }
+
+    public function spinExecute(): void
+    {
+        Auth::staffCheck();
+
+        $token = $_POST['_csrf'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        if (!Csrf::verify($token)) {
+            Response::json(['ok' => false, 'error' => 'invalid_csrf'], 403);
+        }
+
+        $customer = $_SESSION['pending_customer'] ?? null;
+        if (!$customer) {
+            Response::json(['ok' => false, 'error' => 'invalid_session'], 400);
+        }
+
+        // Aynı müşteri için tekrar tıklanmasın
+        if (!empty($_SESSION['pending_customer']['_locked'])) {
+            Response::json(['ok' => false, 'error' => 'already_spun'], 409);
+        }
+        $_SESSION['pending_customer']['_locked'] = true;
 
         try {
-            $code = (new CodeService())->issue(Auth::staffId(), $receiptNo, $amount);
-            AuditLog::write(Auth::staffId(), 'code.issued', 'spin_codes', null, [], $this->ip());
-            $_SESSION['issued_code'] = $code;
-            Response::redirect('/staff');
-        } catch (\RuntimeException $e) {
-            $_SESSION['staff_error'] = 'Kod üretilemedi. Stok veya sistem hatası.';
-            Response::redirect('/staff');
+            $engine    = new WheelEngine();
+            $winner    = $engine->pickWinner();
+            $allPrizes = Prize::allActive();
+
+            $participantId = Participant::create([
+                'first_name'          => $customer['first_name'],
+                'last_name'           => $customer['last_name'],
+                'phone'               => $customer['phone'],
+                'receipt_no'          => $customer['receipt_no'],
+                'receipt_amount'      => $customer['receipt_amount'],
+                'prize_id'            => $winner['id'],
+                'prize_name_snapshot' => $winner['name'],
+                'brand_snapshot'      => $winner['brand_name'] ?? null,
+                'staff_id'            => Auth::staffId(),
+                'ip_address'          => $this->ip(),
+                'user_agent'          => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            ]);
+
+            AuditLog::write(Auth::staffId(), 'spin.executed', 'participants', $participantId,
+                ['prize_id' => $winner['id']], $this->ip());
+
+            $targetAngle = $engine->calculateTargetAngle($winner['id'], $allPrizes);
+
+            unset($_SESSION['pending_customer']);
+
+            Response::json([
+                'ok'             => true,
+                'winner'         => [
+                    'id'         => $winner['id'],
+                    'name'       => $winner['name'],
+                    'brand_name' => $winner['brand_name'],
+                    'logo_path'  => $winner['logo_path'],
+                    'color_hex'  => $winner['color_hex'],
+                ],
+                'target_angle'   => $targetAngle,
+                'participant_id' => $participantId,
+            ]);
+
+        } catch (\Throwable $e) {
+            // Hata durumunda lock'u serbest bırak
+            unset($_SESSION['pending_customer']['_locked']);
+
+            \App\Core\Logger::error('staff_spin_failed', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile() . ':' . $e->getLine(),
+            ]);
+
+            $code = match($e->getMessage()) {
+                'NO_STOCK_AVAILABLE'   => 'no_stock',
+                'STOCK_RACE_CONDITION' => 'no_stock',
+                default                => 'server_error',
+            };
+            $status = $code === 'no_stock' ? 410 : 500;
+            Response::json(['ok' => false, 'error' => $code], $status);
         }
     }
 
-    public function cancelCode(string $codeId): void
+    // ── Kazanma ekranı ────────────────────────────────────────────────
+
+    public function win(string $participantId): void
     {
         Auth::staffCheck();
-        Csrf::check();
+        $participant = Participant::find((int)$participantId);
+        if (!$participant) Response::redirect('/staff');
 
-        $ok = (new CodeService())->cancel((int)$codeId, Auth::staffId());
-        AuditLog::write(Auth::staffId(), 'code.cancelled', 'spin_codes', (int)$codeId, [], $this->ip());
-
-        unset($_SESSION['issued_code']);
-        Response::redirect('/staff');
+        $prize    = Prize::find((int)$participant['prize_id']);
+        $settings = Settings::all();
+        require __DIR__ . '/../Views/staff/win.php';
     }
 
-    public function reject(): void
+    // ── Yeni müşteri (form'a dön) ─────────────────────────────────────
+
+    public function newCustomer(): void
     {
         Auth::staffCheck();
         Csrf::check();
-        AuditLog::write(Auth::staffId(), 'approval.rejected', null, null, [], $this->ip());
-        $_SESSION['staff_message'] = 'Müşteri reddedildi.';
+        unset($_SESSION['pending_customer']);
         Response::redirect('/staff');
     }
 }

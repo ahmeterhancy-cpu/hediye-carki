@@ -10,13 +10,9 @@ use App\Core\Auth;
 use App\Core\Router;
 use App\Controllers\AdminController;
 use App\Controllers\StaffController;
-use App\Controllers\CustomerController;
-use App\Controllers\ApiController;
 
-// Session başlat
 Auth::startSession();
 
-// Hata yönetimi
 $cfg = require BASE_PATH . '/config/app.php';
 if ($cfg['debug']) {
     error_reporting(E_ALL);
@@ -26,7 +22,7 @@ if ($cfg['debug']) {
     ini_set('display_errors', '0');
 }
 
-// Storage uploads symlink (gerekirse)
+// storage uploads symlink
 $uploadsLink = __DIR__ . '/storage';
 if (!file_exists($uploadsLink)) {
     @symlink(BASE_PATH . '/storage', $uploadsLink);
@@ -34,58 +30,52 @@ if (!file_exists($uploadsLink)) {
 
 $router = new Router();
 
-// ── Admin ────────────────────────────────────────────
-$router->get( '/admin/login',                    [AdminController::class, 'loginForm']);
-$router->post('/admin/login',                    [AdminController::class, 'loginPost']);
-$router->post('/admin/logout',                   [AdminController::class, 'logout']);
+// ── Ana sayfa: görevliye yönlendir ─────────────────────────────────
+$router->get('/', function () {
+    \App\Core\Response::redirect(\App\Core\Auth::staffId() ? '/staff' : '/staff/login');
+});
 
-$router->get( '/admin',                          [AdminController::class, 'dashboard']);
-$router->get( '/admin/prizes',                   [AdminController::class, 'prizes']);
-$router->post('/admin/prizes',                   [AdminController::class, 'prizeCreate']);
-$router->post('/admin/prizes/reorder',           [AdminController::class, 'prizeReorder']);
-$router->post('/admin/prizes/{id}/delete',       [AdminController::class, 'prizeDelete']);
-$router->post('/admin/prizes/{id}',              [AdminController::class, 'prizeUpdate']);
+// ── Admin ────────────────────────────────────────────────────────────
+$router->get( '/admin/login',                          [AdminController::class, 'loginForm']);
+$router->post('/admin/login',                          [AdminController::class, 'loginPost']);
+$router->post('/admin/logout',                         [AdminController::class, 'logout']);
 
-$router->get( '/admin/settings',                 [AdminController::class, 'settings']);
-$router->post('/admin/settings',                 [AdminController::class, 'settingsPost']);
+$router->get( '/admin',                                [AdminController::class, 'dashboard']);
+$router->get( '/admin/prizes',                         [AdminController::class, 'prizes']);
+$router->post('/admin/prizes',                         [AdminController::class, 'prizeCreate']);
+$router->post('/admin/prizes/reorder',                 [AdminController::class, 'prizeReorder']);
+$router->post('/admin/prizes/{id}/delete',             [AdminController::class, 'prizeDelete']);
+$router->post('/admin/prizes/{id}',                    [AdminController::class, 'prizeUpdate']);
 
-$router->get( '/admin/stock',                    [AdminController::class, 'stock']);
-$router->post('/admin/stock/{prize_id}',         [AdminController::class, 'stockUpdate']);
+$router->get( '/admin/settings',                       [AdminController::class, 'settings']);
+$router->post('/admin/settings',                       [AdminController::class, 'settingsPost']);
 
-$router->get( '/admin/participants',             [AdminController::class, 'participants']);
-$router->get( '/admin/participants/export',      [AdminController::class, 'participantsExport']);
-$router->get( '/admin/reports',                  [AdminController::class, 'reports']);
+$router->get( '/admin/stock',                          [AdminController::class, 'stock']);
+$router->post('/admin/stock/{prize_id}',               [AdminController::class, 'stockUpdate']);
 
-$router->get( '/admin/staff-users',                   [AdminController::class, 'staffUsers']);
-$router->post('/admin/staff-users',                   [AdminController::class, 'staffCreate']);
-$router->get( '/admin/staff-users/generate-pin',      [AdminController::class, 'staffGeneratePin']);
-$router->post('/admin/staff-users/{id}/reset-pin',    [AdminController::class, 'staffResetPin']);
-$router->post('/admin/staff-users/{id}/toggle',       [AdminController::class, 'staffToggle']);
-$router->post('/admin/staff-users/{id}/delete',       [AdminController::class, 'staffDelete']);
+$router->get( '/admin/participants',                   [AdminController::class, 'participants']);
+$router->get( '/admin/participants/export',            [AdminController::class, 'participantsExport']);
+$router->get( '/admin/reports',                        [AdminController::class, 'reports']);
 
-// ── Staff ─────────────────────────────────────────────
-$router->get( '/staff/login',                   [StaffController::class, 'loginForm']);
-$router->post('/staff/login',                   [StaffController::class, 'loginPost']);
-$router->post('/staff/logout',                  [StaffController::class, 'logout']);
-$router->get( '/staff',                         [StaffController::class, 'approveForm']);
-$router->post('/staff/approve',                 [StaffController::class, 'approvePost']);
-$router->post('/staff/cancel/{code_id}',        [StaffController::class, 'cancelCode']);
-$router->post('/staff/reject',                  [StaffController::class, 'reject']);
+$router->get( '/admin/staff-users',                    [AdminController::class, 'staffUsers']);
+$router->post('/admin/staff-users',                    [AdminController::class, 'staffCreate']);
+$router->get( '/admin/staff-users/generate-pin',       [AdminController::class, 'staffGeneratePin']);
+$router->post('/admin/staff-users/{id}/reset-pin',     [AdminController::class, 'staffResetPin']);
+$router->post('/admin/staff-users/{id}/toggle',        [AdminController::class, 'staffToggle']);
+$router->post('/admin/staff-users/{id}/delete',        [AdminController::class, 'staffDelete']);
 
-// ── Customer ──────────────────────────────────────────
-$router->get( '/',                              [CustomerController::class, 'enterCode']);
-$router->post('/spin/code',                     [CustomerController::class, 'validateCode']);
-$router->get( '/spin/register',                 [CustomerController::class, 'registerForm']);
-$router->post('/spin/register',                 [CustomerController::class, 'registerPost']);
-$router->get( '/spin/wheel',                    [CustomerController::class, 'wheel']);
-$router->get( '/spin/win/{participant_id}',     [CustomerController::class, 'win']);
-$router->post('/spin/reset',                    [CustomerController::class, 'reset']);
+// ── Görevli (tek-cihaz akışı) ───────────────────────────────────────
+$router->get( '/staff/login',                          [StaffController::class, 'loginForm']);
+$router->post('/staff/login',                          [StaffController::class, 'loginPost']);
+$router->post('/staff/logout',                         [StaffController::class, 'logout']);
 
-// ── API ───────────────────────────────────────────────
-$router->post('/api/spin/execute',              [ApiController::class, 'spinExecute']);
-$router->get( '/api/stock/status',              [ApiController::class, 'stockStatus']);
+$router->get( '/staff',                                [StaffController::class, 'customerForm']);
+$router->post('/staff/customer',                       [StaffController::class, 'customerSubmit']);
+$router->get( '/staff/spin',                           [StaffController::class, 'spin']);
+$router->post('/staff/spin/execute',                   [StaffController::class, 'spinExecute']);
+$router->get( '/staff/win/{participant_id}',           [StaffController::class, 'win']);
+$router->post('/staff/new',                            [StaffController::class, 'newCustomer']);
 
-// Dispatch
 $method = $_SERVER['REQUEST_METHOD'];
 $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 

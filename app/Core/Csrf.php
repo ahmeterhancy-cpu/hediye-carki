@@ -43,17 +43,7 @@ class Csrf
     {
         $token = $_POST['_csrf'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
         if (!self::verify($token)) {
-            // /spin/* endpoint'lerinde kullanıcıyı baştan başlat
             $uri = $_SERVER['REQUEST_URI'] ?? '';
-            if (str_starts_with($uri, '/spin/')) {
-                if (session_status() === PHP_SESSION_ACTIVE) {
-                    session_unset();
-                    session_destroy();
-                }
-                Response::redirect('/');
-            }
-
-            // Admin/staff'ta açıklayıcı mesaj + login'e yönlendirme
             if (str_starts_with($uri, '/admin/')) Response::redirect('/admin/login');
             if (str_starts_with($uri, '/staff/')) Response::redirect('/staff/login');
 

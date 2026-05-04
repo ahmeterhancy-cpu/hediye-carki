@@ -8,7 +8,7 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
   ('start_time',       '10:00'),
   ('end_time',         '22:00'),
   ('per_phone_limit',  '1'),
-  ('per_phone_window', '7'),
+  ('per_phone_window', '1'),
   ('event_active',     '1'),
   ('event_title',      'Mandella Açılış Çekilişi'),
   ('code_ttl_seconds', '300');

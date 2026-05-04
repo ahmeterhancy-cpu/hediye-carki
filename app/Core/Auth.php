@@ -92,42 +92,4 @@ class Auth
         return $_SESSION['staff_name'] ?? '';
     }
 
-    // --- Customer (kiosk session) ---
-
-    public static function setSpinCode(array $codeRow): void
-    {
-        self::startSession();
-        $_SESSION['spin_code'] = $codeRow;
-    }
-
-    public static function getSpinCode(): ?array
-    {
-        self::startSession();
-        return $_SESSION['spin_code'] ?? null;
-    }
-
-    public static function clearSpinCode(): void
-    {
-        self::startSession();
-        unset($_SESSION['spin_code'], $_SESSION['spin_registration']);
-    }
-
-    public static function setRegistration(array $data): void
-    {
-        self::startSession();
-        $_SESSION['spin_registration'] = $data;
-    }
-
-    public static function getRegistration(): ?array
-    {
-        self::startSession();
-        return $_SESSION['spin_registration'] ?? null;
-    }
-
-    public static function clearCustomer(): void
-    {
-        self::startSession();
-        session_unset();
-        session_destroy();
-    }
 }
