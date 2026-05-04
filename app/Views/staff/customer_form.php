@@ -35,8 +35,8 @@
       <p class="text-white/80 text-sm">Müşteri bilgilerini girin</p>
     </div>
 
-    <form method="POST" action="/staff/customer" class="bg-white/97 rounded-2xl p-6 space-y-3 border-2 border-yellow-400/40"
-          style="box-shadow: 0 0 60px rgba(255,180,40,0.35), 0 20px 50px rgba(0,0,0,0.6);">
+    <form method="POST" action="/staff/customer" class="rounded-2xl p-6 space-y-3 border-2 border-yellow-400"
+          style="background-color: #ffffff; box-shadow: 0 0 60px rgba(255,180,40,0.45), 0 20px 50px rgba(0,0,0,0.7);">
       <?= \App\Core\Csrf::field() ?>
 
       <div class="grid grid-cols-2 gap-3">

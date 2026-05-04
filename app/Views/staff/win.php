@@ -33,27 +33,27 @@
     <div class="text-8xl mb-4">🎁</div>
   <?php endif; ?>
 
-  <div class="bg-white/98 rounded-3xl p-8 border-4 border-yellow-400/50"
-       style="box-shadow: 0 0 80px 10px rgba(255,200,50,0.4), 0 30px 60px rgba(0,0,0,0.7);">
-    <p class="text-slate-500 text-base font-semibold mb-2">TEBRİKLER 🎉</p>
+  <div class="rounded-3xl p-8 border-4 border-yellow-400"
+       style="background-color: #ffffff; box-shadow: 0 0 80px 10px rgba(255,200,50,0.55), 0 30px 60px rgba(0,0,0,0.8);">
+    <p class="text-slate-700 text-base font-bold mb-2 tracking-wide">TEBRİKLER 🎉</p>
 
-    <p class="text-orange-600 text-base mb-2">
+    <p class="text-orange-700 text-lg font-semibold mb-3">
       <?= htmlspecialchars($participant['first_name'] . ' ' . $participant['last_name'], ENT_QUOTES, 'UTF-8') ?>
     </p>
 
-    <h1 class="text-3xl md:text-4xl font-black text-slate-800 mb-2">
+    <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-2">
       <?= htmlspecialchars($participant['prize_name_snapshot'], ENT_QUOTES, 'UTF-8') ?>
     </h1>
 
     <?php if ($participant['brand_snapshot'] ?? null): ?>
-      <p class="text-xl text-orange-600 font-bold mb-4">
+      <p class="text-xl text-orange-700 font-bold mb-4">
         <?= htmlspecialchars($participant['brand_snapshot'], ENT_QUOTES, 'UTF-8') ?>
       </p>
     <?php endif; ?>
 
-    <div class="bg-orange-50 border border-orange-200 rounded-2xl px-6 py-4 mb-2">
-      <p class="text-slate-600 text-sm mb-1">📍 Hediyeyi şuradan alın:</p>
-      <p class="text-slate-800 font-bold text-lg">
+    <div class="bg-orange-50 border-2 border-orange-300 rounded-2xl px-6 py-4 mb-2">
+      <p class="text-slate-700 text-sm font-semibold mb-1">📍 Hediyeyi şuradan alın:</p>
+      <p class="text-slate-900 font-black text-lg">
         <?php
           $pickup = $participant['pickup_snapshot']
                  ?? ($participant['brand_snapshot'] ? $participant['brand_snapshot'] . ' standı' : 'Etkinlik standı');
@@ -62,13 +62,14 @@
       </p>
     </div>
 
-    <p class="text-slate-400 text-xs font-mono">Katılım #<?= (int)$participant['id'] ?></p>
+    <p class="text-slate-500 text-xs font-mono mt-2">Katılım #<?= (int)$participant['id'] ?></p>
   </div>
 
   <form method="POST" action="/staff/new" class="mt-6">
     <?= \App\Core\Csrf::field() ?>
     <button type="submit"
-            class="bg-white text-orange-600 hover:bg-yellow-100 active:scale-95 transition px-10 py-4 rounded-2xl text-lg font-black shadow-2xl">
+            class="bg-white text-orange-700 hover:bg-yellow-100 active:scale-95 transition px-10 py-4 rounded-2xl text-lg font-black border-2 border-yellow-400"
+            style="box-shadow: 0 0 30px rgba(255,200,50,0.6), 0 10px 30px rgba(0,0,0,0.5);">
       + Yeni Müşteri
     </button>
   </form>
