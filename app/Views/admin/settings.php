@@ -1,8 +1,60 @@
 <?php $pageTitle = 'Şartlar'; ob_start(); ?>
-<h1 class="text-2xl font-bold mb-6">Etkinlik Şartları</h1>
+<h1 class="text-2xl font-bold mb-6">Etkinlik Şartları & Marka Yönetimi</h1>
 
-<form method="POST" action="/admin/settings" class="max-w-xl bg-gray-800 rounded-xl p-6 space-y-4">
+<form method="POST" action="/admin/settings" enctype="multipart/form-data" class="max-w-2xl bg-gray-800 rounded-xl p-6 space-y-5">
   <?= \App\Core\Csrf::field() ?>
+
+  <!-- ── Marka / Branding ──────────────────────────────────────── -->
+  <fieldset class="border border-gray-700 rounded-lg p-4">
+    <legend class="px-2 text-sm font-semibold text-yellow-400">Marka</legend>
+
+    <div class="mb-3">
+      <label class="block text-sm text-gray-400 mb-1">Firma Adı</label>
+      <input type="text" name="company_name"
+             value="<?= htmlspecialchars($settings['company_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
+             placeholder="örn: Erasta Edirne AVM"
+             class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white">
+      <p class="text-xs text-gray-500 mt-1">Müşteri ekranlarında üst başlıkta gösterilir.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Firma Logosu</label>
+        <?php if (!empty($settings['company_logo_path'])): ?>
+          <div class="mb-2 flex items-center gap-2">
+            <img src="<?= htmlspecialchars($settings['company_logo_path'], ENT_QUOTES, 'UTF-8') ?>"
+                 alt="logo" class="h-16 bg-gray-900 rounded p-2 border border-gray-600">
+            <label class="inline-flex items-center gap-1 text-xs text-red-400">
+              <input type="checkbox" name="remove_company_logo" value="1"> Kaldır
+            </label>
+          </div>
+        <?php endif; ?>
+        <input type="file" name="company_logo" accept="image/*"
+               class="w-full text-sm text-gray-400">
+        <p class="text-xs text-gray-500 mt-1">PNG/SVG önerilir, maks 5MB.</p>
+      </div>
+
+      <div>
+        <label class="block text-sm text-gray-400 mb-1">Arka Plan Resmi</label>
+        <?php if (!empty($settings['bg_image_path'])): ?>
+          <div class="mb-2">
+            <img src="<?= htmlspecialchars($settings['bg_image_path'], ENT_QUOTES, 'UTF-8') ?>"
+                 alt="bg" class="h-16 w-full object-cover rounded border border-gray-600">
+            <label class="inline-flex items-center gap-1 text-xs text-blue-400 mt-1">
+              <input type="checkbox" name="reset_bg" value="1"> Default'a sıfırla
+            </label>
+          </div>
+        <?php endif; ?>
+        <input type="file" name="bg_image" accept="image/*"
+               class="w-full text-sm text-gray-400">
+        <p class="text-xs text-gray-500 mt-1">JPG (yatay, 1920x1080+), maks 8MB.</p>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- ── Etkinlik ──────────────────────────────────────────────── -->
+  <fieldset class="border border-gray-700 rounded-lg p-4 space-y-4">
+    <legend class="px-2 text-sm font-semibold text-yellow-400">Etkinlik</legend>
 
   <div class="flex items-center gap-3">
     <input type="checkbox" name="event_active" id="event_active" <?= ($settings['event_active'] ?? '0') === '1' ? 'checked' : '' ?>
@@ -56,8 +108,10 @@
     </div>
   </div>
 
-  <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-2 rounded-lg">
-    Kaydet
+  </fieldset>
+
+  <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 rounded-lg text-lg">
+    💾 Kaydet
   </button>
 </form>
 <?php $content = ob_get_clean(); require __DIR__ . '/../layouts/admin.php'; ?>

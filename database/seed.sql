@@ -9,9 +9,12 @@ INSERT IGNORE INTO settings (setting_key, setting_value) VALUES
   ('end_time',         '22:00'),
   ('per_phone_limit',  '1'),
   ('per_phone_window', '1'),
-  ('event_active',     '1'),
-  ('event_title',      'Mandella Açılış Çekilişi'),
-  ('code_ttl_seconds', '300');
+  ('event_active',      '1'),
+  ('event_title',       'Mandella Açılış Çekilişi'),
+  ('code_ttl_seconds',  '300'),
+  ('company_name',      ''),
+  ('company_logo_path', ''),
+  ('bg_image_path',     '/img/bg-mall.jpg');
 
 -- 8 demo dilim
 INSERT IGNORE INTO prizes (id, name, brand_name, color_hex, weight, display_order, is_active) VALUES

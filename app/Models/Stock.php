@@ -8,15 +8,22 @@ class Stock
 {
     public static function upsert(int $prizeId, int $initialQty, int $remainingQty, ?int $dailyLimit = null): void
     {
+        // Placeholder isimleri INSERT ve UPDATE bölümlerinde tekrar edilemez
+        // (emulate_prepares=false). Her bölüm için ayrı isim:
         $stmt = Database::pdo()->prepare("
             INSERT INTO stocks (prize_id, initial_qty, remaining_qty, daily_limit)
-            VALUES (:pid, :iq, :rq, :dl)
+            VALUES (:pid, :iq1, :rq1, :dl1)
             ON DUPLICATE KEY UPDATE
-                initial_qty   = :iq,
-                remaining_qty = :rq,
-                daily_limit   = :dl
+                initial_qty   = :iq2,
+                remaining_qty = :rq2,
+                daily_limit   = :dl2
         ");
-        $stmt->execute(['pid' => $prizeId, 'iq' => $initialQty, 'rq' => $remainingQty, 'dl' => $dailyLimit]);
+        $stmt->execute([
+            'pid' => $prizeId,
+            'iq1' => $initialQty,  'iq2' => $initialQty,
+            'rq1' => $remainingQty,'rq2' => $remainingQty,
+            'dl1' => $dailyLimit,  'dl2' => $dailyLimit,
+        ]);
     }
 
     public static function status(): array

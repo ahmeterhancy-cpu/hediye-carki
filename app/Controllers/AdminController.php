@@ -186,16 +186,64 @@ class AdminController
         Auth::adminCheck();
         Csrf::check();
 
-        $allowed = ['min_spend', 'start_time', 'end_time', 'per_phone_limit', 'per_phone_window', 'event_active', 'event_title', 'code_ttl_seconds'];
+        $allowed = [
+            'min_spend', 'start_time', 'end_time',
+            'per_phone_limit', 'per_phone_window',
+            'event_active', 'event_title', 'code_ttl_seconds',
+            'company_name',
+        ];
         $data = [];
         foreach ($allowed as $key) {
             if (isset($_POST[$key])) $data[$key] = $_POST[$key];
         }
         $data['event_active'] = isset($_POST['event_active']) ? '1' : '0';
+
+        // Logo upload
+        if (!empty($_FILES['company_logo']['tmp_name'])) {
+            $path = $this->uploadBrandingFile('company_logo', 5);
+            if ($path) $data['company_logo_path'] = $path;
+        } elseif (!empty($_POST['remove_company_logo'])) {
+            $data['company_logo_path'] = '';
+        }
+
+        // Background upload
+        if (!empty($_FILES['bg_image']['tmp_name'])) {
+            $path = $this->uploadBrandingFile('bg_image', 8);
+            if ($path) $data['bg_image_path'] = $path;
+        } elseif (!empty($_POST['reset_bg'])) {
+            $data['bg_image_path'] = '/img/bg-mall.jpg';
+        }
+
         Settings::setMany($data);
 
-        AuditLog::write(Auth::adminId(), 'settings.updated', null, null, $data, $this->ip());
+        AuditLog::write(Auth::adminId(), 'settings.updated', null, null,
+            array_keys($data), $this->ip());
         Response::redirect('/admin/settings');
+    }
+
+    private function uploadBrandingFile(string $field, int $maxMb): ?string
+    {
+        $file    = $_FILES[$field];
+        $maxSize = $maxMb * 1024 * 1024;
+        $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+        $extMap  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif',
+                    'image/webp' => 'webp', 'image/svg+xml' => 'svg'];
+
+        if ($file['size'] > $maxSize) {
+            $_SESSION['flash_error'] = "Dosya {$maxMb}MB'den büyük olamaz.";
+            return null;
+        }
+        $mime = mime_content_type($file['tmp_name']);
+        if (!in_array($mime, $allowed, true)) {
+            $_SESSION['flash_error'] = 'Geçersiz dosya formatı.';
+            return null;
+        }
+        $ext      = $extMap[$mime];
+        $filename = $field . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+        $destDir  = __DIR__ . '/../../public/uploads';
+        if (!is_dir($destDir)) mkdir($destDir, 0775, true);
+        move_uploaded_file($file['tmp_name'], $destDir . '/' . $filename);
+        return '/uploads/' . $filename;
     }
 
     // ── Participants ──────────────────────────────────────────────────────

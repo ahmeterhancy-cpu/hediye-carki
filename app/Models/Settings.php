@@ -26,10 +26,10 @@ class Settings
     {
         $stmt = Database::pdo()->prepare("
             INSERT INTO settings (setting_key, setting_value)
-            VALUES (:k, :v)
-            ON DUPLICATE KEY UPDATE setting_value = :v
+            VALUES (:k, :v1)
+            ON DUPLICATE KEY UPDATE setting_value = :v2
         ");
-        $stmt->execute(['k' => $key, 'v' => $value]);
+        $stmt->execute(['k' => $key, 'v1' => $value, 'v2' => $value]);
         self::$cache = null;
     }
 

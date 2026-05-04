@@ -1,15 +1,24 @@
+<?php
+  // Settings layout'a parent view'dan ya $settings ya da global'den gelmiş olabilir
+  if (!isset($settings)) $settings = \App\Models\Settings::all();
+  $bgImage    = $settings['bg_image_path']     ?? '/img/bg-mall.jpg';
+  $companyLogo = $settings['company_logo_path'] ?? '';
+  $companyName = trim($settings['company_name'] ?? '');
+  $eventTitle  = $settings['event_title']       ?? 'Hediye Çarkı';
+  $headerTitle = $companyName !== '' ? $companyName : $eventTitle;
+?>
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?= htmlspecialchars($pageTitle ?? 'Görevli', ENT_QUOTES, 'UTF-8') ?> — Hediye Çarkı</title>
+<title><?= htmlspecialchars($pageTitle ?? 'Görevli', ENT_QUOTES, 'UTF-8') ?> — <?= htmlspecialchars($headerTitle, ENT_QUOTES, 'UTF-8') ?></title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="/assets/css/app.css">
-<link rel="preload" as="image" href="/img/bg-mall.jpg">
+<link rel="preload" as="image" href="<?= htmlspecialchars($bgImage, ENT_QUOTES, 'UTF-8') ?>">
 <style>
   :root {
-    --bg-image: url('/img/bg-mall.jpg');
+    --bg-image: url('<?= htmlspecialchars($bgImage, ENT_QUOTES, 'UTF-8') ?>');
   }
 
   html, body { height: 100%; }
@@ -55,11 +64,22 @@
 
 <?php if (\App\Core\Auth::staffId()): ?>
 <header class="bg-black/55 backdrop-blur-md text-white px-4 py-2 flex items-center justify-between text-sm border-b border-white/10">
-  <span class="font-semibold">
-    🎡 <?= htmlspecialchars($settings['event_title'] ?? 'Hediye Çarkı', ENT_QUOTES, 'UTF-8') ?>
-  </span>
-  <div class="flex items-center gap-3">
-    <span class="opacity-80">Görevli: <?= htmlspecialchars(\App\Core\Auth::staffName(), ENT_QUOTES, 'UTF-8') ?></span>
+  <div class="flex items-center gap-3 min-w-0">
+    <?php if ($companyLogo): ?>
+      <img src="<?= htmlspecialchars($companyLogo, ENT_QUOTES, 'UTF-8') ?>"
+           alt="logo" class="h-8 w-auto object-contain">
+    <?php else: ?>
+      <span>🎡</span>
+    <?php endif; ?>
+    <span class="font-semibold truncate">
+      <?= htmlspecialchars($headerTitle, ENT_QUOTES, 'UTF-8') ?>
+      <?php if ($companyName !== '' && $eventTitle !== '' && $companyName !== $eventTitle): ?>
+        <span class="text-white/60 text-xs ml-1">— <?= htmlspecialchars($eventTitle, ENT_QUOTES, 'UTF-8') ?></span>
+      <?php endif; ?>
+    </span>
+  </div>
+  <div class="flex items-center gap-3 shrink-0">
+    <span class="opacity-80 hidden sm:inline">Görevli: <?= htmlspecialchars(\App\Core\Auth::staffName(), ENT_QUOTES, 'UTF-8') ?></span>
     <form method="POST" action="/staff/logout">
       <?= \App\Core\Csrf::field() ?>
       <button type="submit" class="text-red-200 hover:text-white">Çıkış</button>
