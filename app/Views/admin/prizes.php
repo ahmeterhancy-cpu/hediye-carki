@@ -14,6 +14,7 @@
       <th class="px-4 py-3">Renk</th>
       <th class="px-4 py-3">Ad</th>
       <th class="px-4 py-3">Marka</th>
+      <th class="px-4 py-3">Alış Noktası</th>
       <th class="px-4 py-3">Ağırlık</th>
       <th class="px-4 py-3">Stok</th>
       <th class="px-4 py-3">Durum</th>
@@ -28,6 +29,9 @@
         </td>
         <td class="px-4 py-3 font-medium"><?= htmlspecialchars($p['name'], ENT_QUOTES, 'UTF-8') ?></td>
         <td class="px-4 py-3 text-gray-400"><?= htmlspecialchars($p['brand_name'] ?? '', ENT_QUOTES, 'UTF-8') ?></td>
+        <td class="px-4 py-3 text-gray-400 text-xs max-w-[180px] truncate" title="<?= htmlspecialchars($p['pickup_location'] ?? '', ENT_QUOTES, 'UTF-8') ?>">
+          <?= $p['pickup_location'] ? htmlspecialchars($p['pickup_location'], ENT_QUOTES, 'UTF-8') : '<span class="text-gray-600">— (otomatik)</span>' ?>
+        </td>
         <td class="px-4 py-3">
           <span class="px-2 py-0.5 bg-blue-900 text-blue-300 rounded text-xs"><?= $p['weight'] ?></span>
         </td>
@@ -71,6 +75,12 @@
              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
       <input type="text" name="brand_name" placeholder="Marka Adı"
              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
+      <div>
+        <label class="text-xs text-gray-400">Hediye Alış Noktası</label>
+        <input type="text" name="pickup_location" placeholder="örn: Üst kat Starbucks standı"
+               class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
+        <p class="text-xs text-gray-500 mt-1">Boş bırakırsan "{Marka} standı" gösterilir.</p>
+      </div>
       <div class="flex gap-3">
         <div class="flex-1">
           <label class="text-xs text-gray-400">Renk</label>
@@ -115,6 +125,11 @@
              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
       <input type="text" name="brand_name" id="editBrand" placeholder="Marka Adı"
              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
+      <div>
+        <label class="text-xs text-gray-400">Hediye Alış Noktası</label>
+        <input type="text" name="pickup_location" id="editPickup" placeholder="örn: Üst kat Starbucks standı"
+               class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white text-sm">
+      </div>
       <div class="flex gap-3">
         <div class="flex-1">
           <label class="text-xs text-gray-400">Renk</label>
@@ -146,9 +161,10 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <script>
 function openEdit(p) {
-  document.getElementById('editForm').action = '/admin/prizes/' + p.id;
+  document.getElementById('editForm').action  = '/admin/prizes/' + p.id;
   document.getElementById('editName').value   = p.name;
   document.getElementById('editBrand').value  = p.brand_name || '';
+  document.getElementById('editPickup').value = p.pickup_location || '';
   document.getElementById('editColor').value  = p.color_hex;
   document.getElementById('editWeight').value = p.weight;
   document.getElementById('editActive').checked = p.is_active == 1;

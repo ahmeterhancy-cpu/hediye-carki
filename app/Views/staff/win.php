@@ -51,11 +51,13 @@
     <?php endif; ?>
 
     <div class="bg-orange-50 border border-orange-200 rounded-2xl px-6 py-4 mb-2">
-      <p class="text-slate-600 text-sm mb-1">Hediyeyi alın:</p>
-      <p class="text-slate-800 font-bold">
-        <?= $participant['brand_snapshot']
-            ? htmlspecialchars($participant['brand_snapshot'], ENT_QUOTES, 'UTF-8') . ' standı'
-            : 'Etkinlik standı' ?>
+      <p class="text-slate-600 text-sm mb-1">📍 Hediyeyi şuradan alın:</p>
+      <p class="text-slate-800 font-bold text-lg">
+        <?php
+          $pickup = $participant['pickup_snapshot']
+                 ?? ($participant['brand_snapshot'] ? $participant['brand_snapshot'] . ' standı' : 'Etkinlik standı');
+          echo htmlspecialchars($pickup, ENT_QUOTES, 'UTF-8');
+        ?>
       </p>
     </div>
 

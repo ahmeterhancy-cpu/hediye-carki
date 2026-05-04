@@ -178,6 +178,11 @@ class StaffController
             $winner    = $engine->pickWinner();
             $allPrizes = Prize::allActive();
 
+            // pickup_location dilim ayarlarından, yoksa "{Marka} standı" fallback
+            $pickup = !empty($winner['pickup_location'])
+                ? $winner['pickup_location']
+                : (!empty($winner['brand_name']) ? $winner['brand_name'] . ' standı' : 'Etkinlik standı');
+
             $participantId = Participant::create([
                 'first_name'          => $customer['first_name'],
                 'last_name'           => $customer['last_name'],
@@ -187,6 +192,7 @@ class StaffController
                 'prize_id'            => $winner['id'],
                 'prize_name_snapshot' => $winner['name'],
                 'brand_snapshot'      => $winner['brand_name'] ?? null,
+                'pickup_snapshot'     => $pickup,
                 'staff_id'            => Auth::staffId(),
                 'ip_address'          => $this->ip(),
                 'user_agent'          => $_SERVER['HTTP_USER_AGENT'] ?? '',

@@ -22,12 +22,6 @@ if ($cfg['debug']) {
     ini_set('display_errors', '0');
 }
 
-// storage uploads symlink
-$uploadsLink = __DIR__ . '/storage';
-if (!file_exists($uploadsLink)) {
-    @symlink(BASE_PATH . '/storage', $uploadsLink);
-}
-
 $router = new Router();
 
 // ── Ana sayfa: görevliye yönlendir ─────────────────────────────────

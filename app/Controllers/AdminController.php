@@ -91,13 +91,14 @@ class AdminController
         $logo = $this->handleLogoUpload();
 
         $id = Prize::create([
-            'name'          => trim($_POST['name'] ?? ''),
-            'brand_name'    => trim($_POST['brand_name'] ?? ''),
-            'logo_path'     => $logo,
-            'color_hex'     => $_POST['color_hex'] ?? '#FFB400',
-            'weight'        => (int)($_POST['weight'] ?? 10),
-            'display_order' => (int)($_POST['display_order'] ?? 0),
-            'is_active'     => isset($_POST['is_active']) ? 1 : 0,
+            'name'            => trim($_POST['name'] ?? ''),
+            'brand_name'      => trim($_POST['brand_name'] ?? ''),
+            'pickup_location' => trim($_POST['pickup_location'] ?? ''),
+            'logo_path'       => $logo,
+            'color_hex'       => $_POST['color_hex'] ?? '#FFB400',
+            'weight'          => (int)($_POST['weight'] ?? 10),
+            'display_order'   => (int)($_POST['display_order'] ?? 0),
+            'is_active'       => isset($_POST['is_active']) ? 1 : 0,
         ]);
 
         Stock::upsert($id, (int)($_POST['initial_qty'] ?? 0), (int)($_POST['initial_qty'] ?? 0));
@@ -116,13 +117,14 @@ class AdminController
         $logo = $this->handleLogoUpload($prize['logo_path'] ?? null);
 
         Prize::update((int)$id, [
-            'name'          => trim($_POST['name'] ?? ''),
-            'brand_name'    => trim($_POST['brand_name'] ?? ''),
-            'logo_path'     => $logo,
-            'color_hex'     => $_POST['color_hex'] ?? '#FFB400',
-            'weight'        => (int)($_POST['weight'] ?? 10),
-            'display_order' => (int)($_POST['display_order'] ?? 0),
-            'is_active'     => isset($_POST['is_active']) ? 1 : 0,
+            'name'            => trim($_POST['name'] ?? ''),
+            'brand_name'      => trim($_POST['brand_name'] ?? ''),
+            'pickup_location' => trim($_POST['pickup_location'] ?? ''),
+            'logo_path'       => $logo,
+            'color_hex'       => $_POST['color_hex'] ?? '#FFB400',
+            'weight'          => (int)($_POST['weight'] ?? 10),
+            'display_order'   => (int)($_POST['display_order'] ?? 0),
+            'is_active'       => isset($_POST['is_active']) ? 1 : 0,
         ]);
 
         AuditLog::write(Auth::adminId(), 'prize.updated', 'prize', (int)$id, [], $this->ip());
@@ -350,8 +352,11 @@ class AdminController
 
         $ext      = $extMap[$mime];
         $filename = bin2hex(random_bytes(8)) . '.' . $ext;
-        $dest     = __DIR__ . '/../../storage/uploads/' . $filename;
+        $dest     = __DIR__ . '/../../public/uploads/' . $filename;
+        if (!is_dir(dirname($dest))) {
+            mkdir(dirname($dest), 0775, true);
+        }
         move_uploaded_file($file['tmp_name'], $dest);
-        return '/storage/uploads/' . $filename;
+        return '/uploads/' . $filename;
     }
 }

@@ -11,22 +11,24 @@ class Participant
         $stmt = Database::pdo()->prepare("
             INSERT INTO participants
                 (first_name, last_name, phone, receipt_no, receipt_amount,
-                 prize_id, prize_name_snapshot, brand_snapshot, staff_id, ip_address, user_agent)
+                 prize_id, prize_name_snapshot, brand_snapshot, pickup_snapshot,
+                 staff_id, ip_address, user_agent)
             VALUES
-                (:fn, :ln, :phone, :rno, :ramt, :pid, :pname, :brand, :sid, :ip, :ua)
+                (:fn, :ln, :phone, :rno, :ramt, :pid, :pname, :brand, :pickup, :sid, :ip, :ua)
         ");
         $stmt->execute([
-            'fn'    => $data['first_name'],
-            'ln'    => $data['last_name'],
-            'phone' => $data['phone'],
-            'rno'   => $data['receipt_no'] ?? null,
-            'ramt'  => $data['receipt_amount'] ?? null,
-            'pid'   => $data['prize_id'],
-            'pname' => $data['prize_name_snapshot'],
-            'brand' => $data['brand_snapshot'] ?? null,
-            'sid'   => $data['staff_id'] ?? null,
-            'ip'    => $data['ip_address'] ?? null,
-            'ua'    => $data['user_agent'] ?? null,
+            'fn'     => $data['first_name'],
+            'ln'     => $data['last_name'],
+            'phone'  => $data['phone'],
+            'rno'    => $data['receipt_no'] ?? null,
+            'ramt'   => $data['receipt_amount'] ?? null,
+            'pid'    => $data['prize_id'],
+            'pname'  => $data['prize_name_snapshot'],
+            'brand'  => $data['brand_snapshot'] ?? null,
+            'pickup' => $data['pickup_snapshot'] ?? null,
+            'sid'    => $data['staff_id'] ?? null,
+            'ip'     => $data['ip_address'] ?? null,
+            'ua'     => $data['user_agent'] ?? null,
         ]);
         return (int)Database::pdo()->lastInsertId();
     }

@@ -42,12 +42,13 @@ class Prize
     public static function create(array $data): int
     {
         $stmt = Database::pdo()->prepare("
-            INSERT INTO prizes (name, brand_name, logo_path, color_hex, weight, display_order, is_active)
-            VALUES (:name, :brand, :logo, :color, :weight, :order, :active)
+            INSERT INTO prizes (name, brand_name, pickup_location, logo_path, color_hex, weight, display_order, is_active)
+            VALUES (:name, :brand, :pickup, :logo, :color, :weight, :order, :active)
         ");
         $stmt->execute([
             'name'   => $data['name'],
             'brand'  => $data['brand_name'] ?? null,
+            'pickup' => $data['pickup_location'] ?? null,
             'logo'   => $data['logo_path'] ?? null,
             'color'  => $data['color_hex'] ?? '#FFB400',
             'weight' => (int)($data['weight'] ?? 10),
@@ -61,18 +62,20 @@ class Prize
     {
         $stmt = Database::pdo()->prepare("
             UPDATE prizes SET
-                name          = :name,
-                brand_name    = :brand,
-                logo_path     = :logo,
-                color_hex     = :color,
-                weight        = :weight,
-                display_order = :order,
-                is_active     = :active
+                name            = :name,
+                brand_name      = :brand,
+                pickup_location = :pickup,
+                logo_path       = :logo,
+                color_hex       = :color,
+                weight          = :weight,
+                display_order   = :order,
+                is_active       = :active
             WHERE id = :id
         ");
         $stmt->execute([
             'name'   => $data['name'],
             'brand'  => $data['brand_name'] ?? null,
+            'pickup' => $data['pickup_location'] ?? null,
             'logo'   => $data['logo_path'] ?? null,
             'color'  => $data['color_hex'] ?? '#FFB400',
             'weight' => (int)($data['weight'] ?? 10),

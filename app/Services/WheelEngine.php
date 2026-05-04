@@ -13,8 +13,8 @@ class WheelEngine
 
         try {
             $stmt = $pdo->query("
-                SELECT p.id, p.name, p.weight, p.logo_path, p.brand_name, p.color_hex,
-                       p.display_order, s.remaining_qty
+                SELECT p.id, p.name, p.weight, p.logo_path, p.brand_name, p.pickup_location,
+                       p.color_hex, p.display_order, s.remaining_qty
                 FROM prizes p
                 INNER JOIN stocks s ON s.prize_id = p.id
                 WHERE p.is_active = 1 AND s.remaining_qty > 0
