@@ -76,6 +76,21 @@
   50%      { box-shadow: 0 0 120px 30px rgba(255,180,60,0.55), 0 0 0 6px rgba(255,235,120,0.7), 0 0 0 14px rgba(0,0,0,0.65), 0 30px 60px rgba(0,0,0,0.7); }
 }
 #wheelStage { animation: stagePulse 3s ease-in-out infinite; }
+
+/* Halkadaki kavisli yazı — sürekli yavaş dönüş */
+#ringText {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  animation: ringSpin 40s linear infinite;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.7));
+}
+@keyframes ringSpin {
+  from { transform: rotate(0deg);   }
+  to   { transform: rotate(360deg); }
+}
 </style>
 
 <div class="text-center w-full max-w-3xl">
@@ -89,6 +104,53 @@
   </div>
 
   <div id="wheelStage">
+    <!-- Halkadaki kavisli yazılar -->
+    <svg id="ringText" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet"
+         xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Üstte yarı çember (saat 9 → 12 → 3) -->
+        <path id="arcTop"
+              d="M 12,100 A 88,88 0 0 1 188,100"
+              fill="none"/>
+        <!-- Altta yarı çember (saat 9 → 6 → 3) -->
+        <path id="arcBottom"
+              d="M 14,100 A 86,86 0 0 0 186,100"
+              fill="none" transform="rotate(180 100 100)"/>
+
+        <linearGradient id="ringTextGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="#FFFBEA"/>
+          <stop offset="0.5" stop-color="#FFD86B"/>
+          <stop offset="1" stop-color="#C28200"/>
+        </linearGradient>
+      </defs>
+
+      <text font-family="system-ui, sans-serif"
+            font-weight="900"
+            font-size="11"
+            letter-spacing="2"
+            fill="url(#ringTextGrad)"
+            stroke="#5c3a00" stroke-width="0.4"
+            paint-order="stroke fill">
+        <textPath href="#arcTop" startOffset="50%" text-anchor="middle">
+          <?= htmlspecialchars(strtoupper($headerTitle), ENT_QUOTES, 'UTF-8') ?>
+        </textPath>
+      </text>
+
+      <?php if (!empty($eventTitle) && trim($eventTitle) !== trim($headerTitle)): ?>
+      <text font-family="system-ui, sans-serif"
+            font-weight="700"
+            font-size="8"
+            letter-spacing="1.5"
+            fill="rgba(255,235,150,0.9)"
+            stroke="#3a2400" stroke-width="0.3"
+            paint-order="stroke fill">
+        <textPath href="#arcBottom" startOffset="50%" text-anchor="middle">
+          <?= htmlspecialchars(strtoupper($eventTitle), ENT_QUOTES, 'UTF-8') ?>
+        </textPath>
+      </text>
+      <?php endif; ?>
+    </svg>
+
     <div id="wheelWrapper">
       <canvas id="wheelCanvas" width="640" height="640"></canvas>
       <button id="spinBtn">ÇEVİR</button>
