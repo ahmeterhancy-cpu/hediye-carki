@@ -1,6 +1,6 @@
 -- Default admin: admin@local / admin123
 INSERT IGNORE INTO users (name, email, password_hash, role, is_active)
-VALUES ('Admin', 'admin@local', '$2y$12$NQkVGg0u3H5tR7GkEnD4aOBQfmqcQTFLR2XzP0NxKsX1EiPlJnCGW', 'admin', 1);
+VALUES ('Admin', 'admin@local', '$2y$10$TTGsmJ4RMb.TQ2PE..t81ePIEOFHffTsy5i/aSoMaNg3nWUkuL4n2', 'admin', 1);
 
 -- Settings
 INSERT IGNORE INTO settings (setting_key, setting_value) VALUES

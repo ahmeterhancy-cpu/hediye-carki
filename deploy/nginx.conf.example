@@ -1,0 +1,74 @@
+# /etc/nginx/sites-available/hediye-carki
+# ln -s /etc/nginx/sites-available/hediye-carki /etc/nginx/sites-enabled/
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name carkim.example.com;
+
+    # Tüm HTTP'yi HTTPS'e yönlendir
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl http2;
+    server_name carkim.example.com;
+
+    root /var/www/hediye-carki/public;
+    index index.php;
+
+    # SSL (Let's Encrypt sertifikası)
+    ssl_certificate     /etc/letsencrypt/live/carkim.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/carkim.example.com/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+
+    # Güvenlik başlıkları
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    # Statik upload'lar
+    location /storage/uploads/ {
+        alias /var/www/hediye-carki/storage/uploads/;
+        expires 30d;
+        add_header Cache-Control "public, immutable";
+    }
+
+    # Asset cache
+    location ~* \.(css|js|png|jpg|jpeg|gif|svg|webp|ico|woff2?)$ {
+        expires 7d;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # Dosya yoksa index.php'ye yönlendir
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    # PHP-FPM
+    location ~ \.php$ {
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param PATH_INFO $fastcgi_path_info;
+
+        # Büyük upload (logo) için
+        client_max_body_size 5M;
+        fastcgi_read_timeout 60s;
+    }
+
+    # .env, .git gibi gizli dosyalara erişimi engelle
+    location ~ /\.(?!well-known) {
+        deny all;
+    }
+
+    # Log
+    access_log /var/log/nginx/hediye-carki.access.log;
+    error_log  /var/log/nginx/hediye-carki.error.log;
+}

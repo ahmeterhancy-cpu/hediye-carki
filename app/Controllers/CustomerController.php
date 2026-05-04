@@ -116,6 +116,7 @@ class CustomerController
         $participant = Participant::find((int)$participantId);
         if (!$participant) Response::redirect('/');
 
+        $prize    = Prize::find((int)$participant['prize_id']);
         $settings = Settings::all();
         Auth::clearSpinCode();
         require __DIR__ . '/../Views/customer/win.php';

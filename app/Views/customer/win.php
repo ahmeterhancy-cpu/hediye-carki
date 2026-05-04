@@ -29,8 +29,8 @@
 
 <div class="win-card text-center px-4 relative z-10 max-w-md w-full">
   <!-- Logo -->
-  <?php if ($participant['logo_path'] ?? null): ?>
-    <img src="<?= htmlspecialchars($participant['logo_path'], ENT_QUOTES, 'UTF-8') ?>"
+  <?php if (!empty($prize['logo_path'])): ?>
+    <img src="<?= htmlspecialchars($prize['logo_path'], ENT_QUOTES, 'UTF-8') ?>"
          alt="logo" class="mx-auto mb-6 max-h-32 object-contain drop-shadow-xl">
   <?php else: ?>
     <div class="text-8xl mb-4">🎁</div>

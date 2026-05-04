@@ -82,13 +82,18 @@ class ApiController
                 'all_prizes'     => $allPrizes,
             ]);
 
-        } catch (\RuntimeException $e) {
+        } catch (\Throwable $e) {
+            \App\Core\Logger::error('spin_execute_failed', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile() . ':' . $e->getLine(),
+            ]);
             $code = match($e->getMessage()) {
                 'NO_STOCK_AVAILABLE'   => 'no_stock',
                 'STOCK_RACE_CONDITION' => 'no_stock',
                 default                => 'server_error',
             };
-            Response::json(['ok' => false, 'error' => $code], 410);
+            $status = in_array($code, ['no_stock'], true) ? 410 : 500;
+            Response::json(['ok' => false, 'error' => $code], $status);
         }
     }
 

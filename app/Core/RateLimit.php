@@ -23,12 +23,12 @@ class RateLimit
 
         $stmt = $pdo->prepare("
             INSERT INTO rate_limits (cache_key, attempts, expires_at)
-            VALUES (:k, 1, DATE_ADD(NOW(), INTERVAL :w SECOND))
+            VALUES (:k, 1, DATE_ADD(NOW(), INTERVAL :w1 SECOND))
             ON DUPLICATE KEY UPDATE
                 attempts   = attempts + 1,
-                expires_at = IF(attempts = 0, DATE_ADD(NOW(), INTERVAL :w SECOND), expires_at)
+                expires_at = IF(attempts = 0, DATE_ADD(NOW(), INTERVAL :w2 SECOND), expires_at)
         ");
-        $stmt->execute(['k' => $key, 'w' => $window]);
+        $stmt->execute(['k' => $key, 'w1' => $window, 'w2' => $window]);
 
         $row = $pdo->prepare("SELECT attempts FROM rate_limits WHERE cache_key = :k");
         $row->execute(['k' => $key]);

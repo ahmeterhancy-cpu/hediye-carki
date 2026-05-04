@@ -1,11 +1,22 @@
 <?php ob_start(); ?>
 <style>
+#wheelWrapper {
+  position: relative;
+  display: inline-block;
+  width: min(85vw, 80vh, 600px);
+  aspect-ratio: 1 / 1;
+}
+#wheelCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 #spinBtn {
-  width: 200px; height: 200px;
+  width: 28%; height: 28%;
   border-radius: 50%;
   background: linear-gradient(135deg, #FBBF24, #EF4444);
   box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  font-size: 1.5rem;
+  font-size: clamp(1rem, 3vw, 1.5rem);
   font-weight: 900;
   color: white;
   border: 6px solid white;
@@ -18,27 +29,28 @@
 }
 #spinBtn:active { transform: translate(-50%, -50%) scale(0.95); }
 #spinBtn:disabled { opacity: 0.6; cursor: not-allowed; }
-#wheelWrapper { position: relative; display: inline-block; }
+#pointer {
+  position: absolute;
+  top: -8px; left: 50%;
+  transform: translateX(-50%);
+  font-size: clamp(2rem, 5vw, 3rem);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  z-index: 5;
+}
 </style>
 
-<div class="text-center">
-  <p class="text-white/80 text-lg font-semibold mb-4">
+<div class="text-center w-full px-2">
+  <p class="text-white/90 text-xl md:text-2xl font-bold mb-4 drop-shadow">
     <?= htmlspecialchars($settings['event_title'] ?? 'Hediye Çarkı', ENT_QUOTES, 'UTF-8') ?>
   </p>
 
-  <!-- İbre -->
-  <div class="relative inline-block">
-    <div id="wheelWrapper">
-      <canvas id="wheelCanvas" width="420" height="420"></canvas>
-      <button id="spinBtn">ÇEVİR!</button>
-    </div>
-    <!-- İbre üstte sabit -->
-    <div style="position:absolute; top:-10px; left:50%; transform:translateX(-50%); font-size:2.5rem; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
-      ▼
-    </div>
+  <div id="wheelWrapper">
+    <canvas id="wheelCanvas" width="600" height="600"></canvas>
+    <button id="spinBtn">ÇEVİR!</button>
+    <div id="pointer">▼</div>
   </div>
 
-  <p class="text-white/60 text-sm mt-4">Butona basın veya dokunun</p>
+  <p class="text-white/70 text-sm mt-4">Butona dokunun</p>
 </div>
 
 <script src="/assets/js/wheel.js"></script>
@@ -65,9 +77,20 @@ spinBtn.addEventListener('click', async () => {
     const data = await res.json();
 
     if (!data.ok) {
-      alert('Hata: ' + (data.error || 'Bilinmeyen hata'));
-      spinBtn.disabled = false;
-      spinBtn.textContent = 'ÇEVİR!';
+      const messages = {
+        no_stock:        'Üzgünüz, hediye stoğu tükendi. Lütfen görevliye haber verin.',
+        invalid_session: 'Oturum süresi doldu. Lütfen baştan başlayın.',
+        code_consumed:   'Bu kod zaten kullanılmış.',
+        invalid_csrf:    'Güvenlik hatası. Sayfayı yenileyin.',
+        server_error:    'Sistem hatası. Lütfen görevliye haber verin.',
+      };
+      alert(messages[data.error] || ('Hata: ' + data.error));
+      if (data.error === 'invalid_session' || data.error === 'code_consumed') {
+        location.href = '/';
+      } else {
+        spinBtn.disabled = false;
+        spinBtn.textContent = 'ÇEVİR!';
+      }
       return;
     }
 

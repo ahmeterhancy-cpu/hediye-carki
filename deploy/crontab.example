@@ -1,0 +1,12 @@
+# Hediye Çarkı Cron Jobs
+# crontab -e (www-data kullanıcısı veya deployment kullanıcısı için)
+
+# Her 5 dakikada bir, süresi dolmuş kodları işaretle
+*/5 * * * * cd /var/www/hediye-carki && /usr/bin/php bin/expire-codes.php >> storage/logs/cron.log 2>&1
+
+# Günlük 03:00'da MySQL backup (rsync veya benzeri ile remote'a göndermek önerilir)
+0 3 * * * mysqldump -u root hediye_carki | gzip > /var/backups/hediye_carki_$(date +\%Y\%m\%d).sql.gz
+
+# Haftalık eski log temizliği
+0 4 * * 0 find /var/www/hediye-carki/storage/logs -name "*.log" -mtime +30 -delete
+0 4 * * 0 find /var/www/hediye-carki/storage/exports -name "*.xlsx" -mtime +60 -delete
