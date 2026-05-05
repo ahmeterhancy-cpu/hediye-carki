@@ -21,6 +21,7 @@ document.documentElement.classList.add('dark');
     <a href="/admin/stock" class="text-sm text-gray-300 hover:text-white">Stok</a>
     <a href="/admin/settings" class="text-sm text-gray-300 hover:text-white">Şartlar</a>
     <a href="/admin/staff-users" class="text-sm text-gray-300 hover:text-white">Görevliler</a>
+    <a href="/admin/admins" class="text-sm text-gray-300 hover:text-white">Adminler</a>
     <a href="/admin/participants" class="text-sm text-gray-300 hover:text-white">Katılımcılar</a>
     <a href="/admin/reports" class="text-sm text-gray-300 hover:text-white">Raporlar</a>
   </div>
@@ -39,6 +40,13 @@ document.documentElement.classList.add('dark');
     <?= htmlspecialchars($_SESSION['flash_error'], ENT_QUOTES, 'UTF-8') ?>
   </div>
   <?php unset($_SESSION['flash_error']); ?>
+<?php endif; ?>
+
+<?php if (!empty($_SESSION['flash_success'])): ?>
+  <div class="mb-4 bg-green-900/50 border border-green-600 text-green-300 px-4 py-3 rounded">
+    <?= htmlspecialchars($_SESSION['flash_success'], ENT_QUOTES, 'UTF-8') ?>
+  </div>
+  <?php unset($_SESSION['flash_success']); ?>
 <?php endif; ?>
 
 <?php if (!empty($_SESSION['flash_pin'])): ?>

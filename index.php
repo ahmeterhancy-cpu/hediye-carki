@@ -58,6 +58,13 @@ $router->post('/admin/staff-users/{id}/reset-pin',     [AdminController::class, 
 $router->post('/admin/staff-users/{id}/toggle',        [AdminController::class, 'staffToggle']);
 $router->post('/admin/staff-users/{id}/delete',        [AdminController::class, 'staffDelete']);
 
+$router->get( '/admin/admins',                         [AdminController::class, 'admins']);
+$router->post('/admin/admins',                         [AdminController::class, 'adminCreate']);
+$router->post('/admin/admins/{id}',                    [AdminController::class, 'adminUpdate']);
+$router->post('/admin/admins/{id}/password',           [AdminController::class, 'adminPasswordChange']);
+$router->post('/admin/admins/{id}/toggle',             [AdminController::class, 'adminToggle']);
+$router->post('/admin/admins/{id}/delete',             [AdminController::class, 'adminDelete']);
+
 // ── Görevli (tek-cihaz akışı) ───────────────────────────────────────
 $router->get( '/staff/login',                          [StaffController::class, 'loginForm']);
 $router->post('/staff/login',                          [StaffController::class, 'loginPost']);

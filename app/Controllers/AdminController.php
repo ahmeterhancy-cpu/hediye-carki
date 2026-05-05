@@ -376,6 +376,166 @@ class AdminController
         Response::redirect('/admin/staff-users');
     }
 
+    // ── Admin Users ───────────────────────────────────────────────────────
+
+    public function admins(): void
+    {
+        Auth::adminCheck();
+        $admins = User::allAdmins();
+        $currentId = Auth::adminId();
+        require __DIR__ . '/../Views/admin/admins.php';
+    }
+
+    public function adminCreate(): void
+    {
+        Auth::adminCheck();
+        Csrf::check();
+
+        $name     = trim($_POST['name'] ?? '');
+        $email    = trim(strtolower($_POST['email'] ?? ''));
+        $password = $_POST['password'] ?? '';
+
+        if (!$name || !$email) {
+            $_SESSION['flash_error'] = 'İsim ve e-posta zorunlu.';
+            Response::redirect('/admin/admins');
+        }
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL) && !preg_match('/^[a-z0-9._-]+@[a-z]+$/', $email)) {
+            $_SESSION['flash_error'] = 'Geçerli bir e-posta girin.';
+            Response::redirect('/admin/admins');
+        }
+        if (strlen($password) < 8) {
+            $_SESSION['flash_error'] = 'Parola en az 8 karakter olmalı.';
+            Response::redirect('/admin/admins');
+        }
+        if (User::emailExists($email)) {
+            $_SESSION['flash_error'] = 'Bu e-posta zaten kayıtlı.';
+            Response::redirect('/admin/admins');
+        }
+
+        $hash = password_hash($password, PASSWORD_BCRYPT);
+        $id = User::createAdmin($name, $email, $hash, Auth::adminId());
+        AuditLog::write(Auth::adminId(), 'admin.created', 'user', $id, ['email' => $email], $this->ip());
+
+        $_SESSION['flash_success'] = "Admin eklendi: {$email}";
+        Response::redirect('/admin/admins');
+    }
+
+    public function adminUpdate(string $id): void
+    {
+        Auth::adminCheck();
+        Csrf::check();
+
+        $user = User::findById((int)$id);
+        if (!$user || $user['role'] !== 'admin') Response::abort(404);
+
+        $name  = trim($_POST['name'] ?? '');
+        $email = trim(strtolower($_POST['email'] ?? ''));
+
+        if (!$name || !$email) {
+            $_SESSION['flash_error'] = 'İsim ve e-posta zorunlu.';
+            Response::redirect('/admin/admins');
+        }
+        if (User::emailExists($email, (int)$id)) {
+            $_SESSION['flash_error'] = 'Bu e-posta başka bir admin tarafından kullanılıyor.';
+            Response::redirect('/admin/admins');
+        }
+
+        User::updateAdmin((int)$id, $name, $email);
+        AuditLog::write(Auth::adminId(), 'admin.updated', 'user', (int)$id, ['email' => $email], $this->ip());
+
+        $_SESSION['flash_success'] = 'Admin güncellendi.';
+        Response::redirect('/admin/admins');
+    }
+
+    public function adminPasswordChange(string $id): void
+    {
+        Auth::adminCheck();
+        Csrf::check();
+
+        $user = User::findById((int)$id);
+        if (!$user || $user['role'] !== 'admin') Response::abort(404);
+
+        $isSelf  = ((int)$id === Auth::adminId());
+        $current = $_POST['current_password'] ?? '';
+        $new     = $_POST['new_password']     ?? '';
+        $confirm = $_POST['confirm_password'] ?? '';
+
+        // Kendi şifresini değiştiriyorsa mevcut şifre doğrulaması zorunlu
+        if ($isSelf) {
+            if (!password_verify($current, $user['password_hash'])) {
+                $_SESSION['flash_error'] = 'Mevcut parolanız hatalı.';
+                Response::redirect('/admin/admins');
+            }
+        }
+
+        if (strlen($new) < 8) {
+            $_SESSION['flash_error'] = 'Yeni parola en az 8 karakter olmalı.';
+            Response::redirect('/admin/admins');
+        }
+        if ($new !== $confirm) {
+            $_SESSION['flash_error'] = 'Parolalar eşleşmiyor.';
+            Response::redirect('/admin/admins');
+        }
+
+        User::updatePassword((int)$id, password_hash($new, PASSWORD_BCRYPT));
+        AuditLog::write(Auth::adminId(), 'admin.password_changed', 'user', (int)$id, [], $this->ip());
+
+        $_SESSION['flash_success'] = $isSelf ? 'Parolanız güncellendi.' : 'Admin parolası güncellendi.';
+        Response::redirect('/admin/admins');
+    }
+
+    public function adminToggle(string $id): void
+    {
+        Auth::adminCheck();
+        Csrf::check();
+
+        $targetId = (int)$id;
+
+        if ($targetId === Auth::adminId()) {
+            $_SESSION['flash_error'] = 'Kendinizi pasifleştiremezsiniz.';
+            Response::redirect('/admin/admins');
+        }
+
+        $user = User::findById($targetId);
+        if (!$user || $user['role'] !== 'admin') Response::abort(404);
+
+        // Son aktif admin pasifleştirilemez
+        if ($user['is_active'] && User::activeAdminCount() <= 1) {
+            $_SESSION['flash_error'] = 'En az bir aktif admin kalmalı.';
+            Response::redirect('/admin/admins');
+        }
+
+        User::toggleAdmin($targetId);
+        AuditLog::write(Auth::adminId(), 'admin.toggled', 'user', $targetId, [], $this->ip());
+        Response::redirect('/admin/admins');
+    }
+
+    public function adminDelete(string $id): void
+    {
+        Auth::adminCheck();
+        Csrf::check();
+
+        $targetId = (int)$id;
+
+        if ($targetId === Auth::adminId()) {
+            $_SESSION['flash_error'] = 'Kendinizi silemezsiniz.';
+            Response::redirect('/admin/admins');
+        }
+
+        $user = User::findById($targetId);
+        if (!$user || $user['role'] !== 'admin') Response::abort(404);
+
+        if (User::activeAdminCount() <= 1 && $user['is_active']) {
+            $_SESSION['flash_error'] = 'Son aktif admin silinemez.';
+            Response::redirect('/admin/admins');
+        }
+
+        User::deleteAdmin($targetId);
+        AuditLog::write(Auth::adminId(), 'admin.deleted', 'user', $targetId, ['email' => $user['email']], $this->ip());
+        $_SESSION['flash_success'] = 'Admin silindi.';
+        Response::redirect('/admin/admins');
+    }
+
     // ── Logo Upload ───────────────────────────────────────────────────────
 
     private function handleLogoUpload(?string $existing = null): ?string

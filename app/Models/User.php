@@ -98,4 +98,74 @@ class User
         }
         return false;
     }
+
+    // ── Admin yönetimi ────────────────────────────────────────────────
+
+    public static function allAdmins(): array
+    {
+        return Database::pdo()->query("
+            SELECT u.id, u.name, u.email, u.is_active, u.last_login_at, u.created_at,
+                   creator.name AS created_by_name
+            FROM users u
+            LEFT JOIN users creator ON creator.id = u.created_by
+            WHERE u.role = 'admin'
+            ORDER BY u.created_at ASC
+        ")->fetchAll();
+    }
+
+    public static function activeAdminCount(): int
+    {
+        return (int)Database::pdo()
+            ->query("SELECT COUNT(*) FROM users WHERE role = 'admin' AND is_active = 1")
+            ->fetchColumn();
+    }
+
+    public static function emailExists(string $email, ?int $excludeId = null): bool
+    {
+        $sql = "SELECT id FROM users WHERE email = :e";
+        $params = ['e' => $email];
+        if ($excludeId !== null) {
+            $sql .= " AND id != :id";
+            $params['id'] = $excludeId;
+        }
+        $stmt = Database::pdo()->prepare($sql);
+        $stmt->execute($params);
+        return (bool)$stmt->fetch();
+    }
+
+    public static function createAdmin(string $name, string $email, string $passwordHash, int $createdBy): int
+    {
+        $stmt = Database::pdo()->prepare("
+            INSERT INTO users (name, email, password_hash, role, is_active, created_by)
+            VALUES (:n, :e, :ph, 'admin', 1, :cb)
+        ");
+        $stmt->execute(['n' => $name, 'e' => $email, 'ph' => $passwordHash, 'cb' => $createdBy]);
+        return (int)Database::pdo()->lastInsertId();
+    }
+
+    public static function updateAdmin(int $id, string $name, string $email): void
+    {
+        $stmt = Database::pdo()->prepare("
+            UPDATE users SET name = :n, email = :e WHERE id = :id AND role = 'admin'
+        ");
+        $stmt->execute(['n' => $name, 'e' => $email, 'id' => $id]);
+    }
+
+    public static function updatePassword(int $id, string $passwordHash): void
+    {
+        $stmt = Database::pdo()->prepare("UPDATE users SET password_hash = :ph WHERE id = :id AND role = 'admin'");
+        $stmt->execute(['ph' => $passwordHash, 'id' => $id]);
+    }
+
+    public static function toggleAdmin(int $id): void
+    {
+        $stmt = Database::pdo()->prepare("UPDATE users SET is_active = 1 - is_active WHERE id = :id AND role = 'admin'");
+        $stmt->execute(['id' => $id]);
+    }
+
+    public static function deleteAdmin(int $id): void
+    {
+        $stmt = Database::pdo()->prepare("DELETE FROM users WHERE id = :id AND role = 'admin'");
+        $stmt->execute(['id' => $id]);
+    }
 }
