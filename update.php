@@ -95,7 +95,7 @@ if (!is_dir($srcDir)) {
 }
 
 // ── 4. Dosyaları kopyala ────────────────────────────────────────────
-// Kopyalanmayacak yollar
+// Kopyalanmayacak yollar (vendor dahil edilir — public_html self-contained olsun)
 $skipPaths = [
     '.env',
     '.git',
@@ -106,7 +106,6 @@ $skipPaths = [
     'storage/exports',
     'storage/uploads',
     'uploads',
-    'vendor',
 ];
 
 function shouldSkip(string $relPath, array $skip): bool {
