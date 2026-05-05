@@ -1,7 +1,4 @@
 ---
 deployment:
   tasks:
-    - export DP=/home/erst6559/hediye-carki && cd $DP && echo "=== Deploy $(date) ===" > storage/deploy.log
-    - cd /home/erst6559/hediye-carki && mkdir -p storage/logs storage/exports storage/uploads public/uploads >> storage/deploy.log 2>&1
-    - cd /home/erst6559/hediye-carki && (command -v composer && composer install --no-dev --optimize-autoloader || (test -f composer.phar || curl -sS https://getcomposer.org/installer | php) && php composer.phar install --no-dev --optimize-autoloader) >> storage/deploy.log 2>&1
-    - cd /home/erst6559/hediye-carki && echo "=== Deploy done $(date) ===" >> storage/deploy.log
+    - cd /home/erst6559/hediye-carki && mkdir -p storage/logs storage/exports storage/uploads public/uploads && echo "Deployed at $(date)" > storage/deploy.log
