@@ -202,18 +202,26 @@ $writableDirs = [
     BASE_PATH . '/storage/uploads',
 ];
 foreach ($writableDirs as $d) {
-    $existed = is_dir($d);
-    if (!$existed) {
+    // Dosya-klasör çakışması var mı?
+    if (file_exists($d) && !is_dir($d)) {
+        out('⚠ Dosya bulundu (klasör olması gerekiyordu): ' . htmlspecialchars($d) . ' — siliniyor', 'warn');
+        @unlink($d);
+    }
+    if (!is_dir($d)) {
         if (@mkdir($d, 0775, true)) {
             out('✓ Oluşturuldu: ' . htmlspecialchars($d), 'ok');
         } else {
-            out('✗ Oluşturulamadı: ' . htmlspecialchars($d) . ' — parent yazılabilir mi? owner: ' . (function_exists('posix_getpwuid') ? (posix_getpwuid(fileowner(dirname($d)))['name'] ?? '?') : '?'), 'err');
+            $err = error_get_last()['message'] ?? 'bilinmeyen';
+            $parent = dirname($d);
+            out('✗ Oluşturulamadı: ' . htmlspecialchars($d) . ' — sebep: ' . htmlspecialchars($err) . ' | parent yazılabilir: ' . (is_writable($parent) ? 'YES' : 'NO') . ' | parent perm: ' . substr(sprintf('%o', fileperms($parent)), -4), 'err');
             continue;
         }
     }
     @chmod($d, 0775);
     if (!is_writable($d)) {
-        out('⚠ Yazılamıyor: ' . htmlspecialchars($d) . ' (chmod başarısız, owner: ' . (function_exists('posix_getpwuid') ? (posix_getpwuid(fileowner($d))['name'] ?? '?') : '?') . ')', 'warn');
+        out('⚠ Yazılamıyor: ' . htmlspecialchars($d) . ' | perm: ' . substr(sprintf('%o', fileperms($d)), -4), 'warn');
+    } else {
+        out('✓ Yazılabilir: ' . htmlspecialchars($d), 'ok');
     }
 }
 
