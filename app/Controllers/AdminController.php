@@ -269,7 +269,7 @@ class AdminController
         }
         $ext      = $extMap[$mime];
         $filename = $field . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
-        $destDir  = dirname(__DIR__, 2) . '/uploads';
+        $destDir  = BASE_PATH . '/uploads';
 
         if (!is_dir($destDir)) {
             if (!@mkdir($destDir, 0775, true) && !is_dir($destDir)) {
@@ -606,7 +606,7 @@ class AdminController
 
         $ext      = $extMap[$mime];
         $filename = bin2hex(random_bytes(8)) . '.' . $ext;
-        $destDir  = dirname(__DIR__, 2) . '/uploads';
+        $destDir  = BASE_PATH . '/uploads';
         if (!is_dir($destDir)) {
             @mkdir($destDir, 0775, true);
         }
