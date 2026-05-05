@@ -87,8 +87,55 @@ class Prize
 
     public static function delete(int $id): void
     {
-        $stmt = Database::pdo()->prepare("DELETE FROM prizes WHERE id = :id");
+        $pdo = Database::pdo();
+        self::ensureNullableFk($pdo);
+        $stmt = $pdo->prepare("DELETE FROM prizes WHERE id = :id");
         $stmt->execute(['id' => $id]);
+    }
+
+    /**
+     * participants.prize_id NULLABLE + FK ON DELETE SET NULL olduğunu garanti eder.
+     * Idempotent — schema doğruysa no-op.
+     */
+    private static function ensureNullableFk(\PDO $pdo): void
+    {
+        $isNullable = $pdo->query("
+            SELECT IS_NULLABLE FROM information_schema.COLUMNS
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'participants'
+              AND COLUMN_NAME = 'prize_id' LIMIT 1
+        ")->fetchColumn();
+        if ($isNullable === 'NO') {
+            $pdo->exec("ALTER TABLE participants MODIFY COLUMN prize_id INT UNSIGNED NULL");
+        }
+
+        $fk = $pdo->query("
+            SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE
+            WHERE TABLE_SCHEMA = DATABASE()
+              AND TABLE_NAME = 'participants'
+              AND COLUMN_NAME = 'prize_id'
+              AND REFERENCED_TABLE_NAME = 'prizes' LIMIT 1
+        ")->fetchColumn();
+
+        $rule = null;
+        if ($fk) {
+            $rule = $pdo->query("
+                SELECT DELETE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS
+                WHERE CONSTRAINT_SCHEMA = DATABASE()
+                  AND CONSTRAINT_NAME = " . $pdo->quote($fk) . " LIMIT 1
+            ")->fetchColumn();
+        }
+
+        if ($rule !== 'SET NULL') {
+            if ($fk) {
+                $pdo->exec("ALTER TABLE participants DROP FOREIGN KEY `" . str_replace('`', '', $fk) . "`");
+            }
+            $pdo->exec("
+                ALTER TABLE participants
+                  ADD CONSTRAINT participants_prize_fk
+                  FOREIGN KEY (prize_id) REFERENCES prizes(id) ON DELETE SET NULL
+            ");
+        }
     }
 
     public static function participantCount(int $id): int
