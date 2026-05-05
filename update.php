@@ -226,7 +226,38 @@ foreach ($writableDirs as $d) {
     }
 }
 
-// ── 7. Opcache reset (varsa) ────────────────────────────────────────
+// ── 7. Migrationları çalıştır ───────────────────────────────────────
+out('Migrationlar çalıştırılıyor...');
+try {
+    require_once BASE_PATH . '/vendor/autoload.php';
+    $pdo = \App\Core\Database::pdo();
+    $files = glob(BASE_PATH . '/database/migrations/*.sql');
+    sort($files);
+    foreach ($files as $file) {
+        $name = basename($file);
+        try {
+            $sql = file_get_contents($file);
+            // Çoklu statement desteği için noktalı virgülle ayrılmış parçaları çalıştır
+            foreach (array_filter(array_map('trim', explode(';', $sql))) as $stmt) {
+                if ($stmt === '' || str_starts_with($stmt, '--')) continue;
+                $pdo->exec($stmt);
+            }
+            out('  ✓ ' . htmlspecialchars($name), 'ok');
+        } catch (\PDOException $e) {
+            $msg = $e->getMessage();
+            // Idempotent migration'lar için bilinen "zaten var" hatalarını warn olarak işaretle
+            if (str_contains($msg, 'Duplicate') || str_contains($msg, 'already exists') || str_contains($msg, "Can't DROP")) {
+                out('  ↷ ' . htmlspecialchars($name) . ' (zaten uygulanmış)', 'warn');
+            } else {
+                out('  ✗ ' . htmlspecialchars($name) . ': ' . htmlspecialchars($msg), 'err');
+            }
+        }
+    }
+} catch (\Throwable $e) {
+    out('Migration sistemi başlatılamadı: ' . htmlspecialchars($e->getMessage()), 'err');
+}
+
+// ── 8. Opcache reset (varsa) ────────────────────────────────────────
 if (function_exists('opcache_reset')) {
     @opcache_reset();
     out('✓ Opcache sıfırlandı.', 'ok');

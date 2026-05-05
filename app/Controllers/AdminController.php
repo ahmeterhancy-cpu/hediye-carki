@@ -137,13 +137,10 @@ class AdminController
         Csrf::check();
         $pid = (int)$id;
         $count = Prize::participantCount($pid);
+        Prize::delete($pid);
+        AuditLog::write(Auth::adminId(), 'prize.deleted', 'prize', $pid, ['participants' => $count], $this->ip());
         if ($count > 0) {
-            Prize::deactivate($pid);
-            AuditLog::write(Auth::adminId(), 'prize.deactivated', 'prize', $pid, ['reason' => 'has_participants', 'count' => $count], $this->ip());
-            $_SESSION['flash_error'] = "Bu dilime bağlı {$count} katılımcı kaydı var, silinemez. Çarktan kaldırmak için pasifleştirildi (kayıtlar korunuyor).";
-        } else {
-            Prize::delete($pid);
-            AuditLog::write(Auth::adminId(), 'prize.deleted', 'prize', $pid, [], $this->ip());
+            $_SESSION['flash_success'] = "Dilim silindi. {$count} katılımcı kaydı korundu (ödül adı/marka snapshot olarak saklanır).";
         }
         Response::redirect('/admin/prizes');
     }
