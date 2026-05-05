@@ -91,6 +91,19 @@ class Prize
         $stmt->execute(['id' => $id]);
     }
 
+    public static function participantCount(int $id): int
+    {
+        $stmt = Database::pdo()->prepare("SELECT COUNT(*) FROM participants WHERE prize_id = :id");
+        $stmt->execute(['id' => $id]);
+        return (int)$stmt->fetchColumn();
+    }
+
+    public static function deactivate(int $id): void
+    {
+        $stmt = Database::pdo()->prepare("UPDATE prizes SET is_active = 0 WHERE id = :id");
+        $stmt->execute(['id' => $id]);
+    }
+
     public static function reorder(array $orderedIds): void
     {
         $pdo = Database::pdo();
