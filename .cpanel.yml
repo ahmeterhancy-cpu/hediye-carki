@@ -1,4 +1,4 @@
 ---
 deployment:
   tasks:
-    - /bin/echo "deployed at $(date)" > /home/erst6559/hediye-carki/storage/deploy.log
+    - /bin/bash /home/erst6559/hediye-carki/deploy/post-deploy.sh
