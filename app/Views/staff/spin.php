@@ -311,9 +311,7 @@ spinBtn.addEventListener('click', async () => {
       return;
     }
 
-    try { new Audio('/assets/sounds/spin.mp3').play(); } catch(e) {}
     await wheel.spinTo(data.target_angle, 5000);
-    try { new Audio('/assets/sounds/win.mp3').play(); } catch(e) {}
 
     location.href = '/staff/win/' + data.participant_id;
 

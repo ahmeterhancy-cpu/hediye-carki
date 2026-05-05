@@ -14,8 +14,86 @@ class Wheel {
     this.rotation  = 0;
     this.spinning  = false;
     this.ledPhase  = 0;
+    this.audioCtx  = null;
     this.draw();
     this.animateLeds();
+  }
+
+  // ── Ses motoru (Web Audio API) ────────────────────────────────
+  _ensureAudio() {
+    if (this.audioCtx) return this.audioCtx;
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      this.audioCtx = new Ctx();
+    } catch(e) { return null; }
+    return this.audioCtx;
+  }
+
+  // Tek "tık" sesi — pointer dilim sınırını geçtiğinde
+  _playTick(intensity = 1) {
+    const ctx = this._ensureAudio();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1800, t);
+    osc.frequency.exponentialRampToValueAtTime(900, t + 0.04);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.18 * intensity, t + 0.005);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.07);
+  }
+
+  // Dönüş başlangıcı — kısa swoosh
+  _playSpinStart() {
+    const ctx = this._ensureAudio();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 800;
+    filter.Q.value = 2;
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(120, t);
+    osc.frequency.exponentialRampToValueAtTime(900, t + 0.5);
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.12, t + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
+    osc.connect(filter).connect(gain).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.5);
+  }
+
+  // Kazandı! — yükselen tatlı melodi (do-mi-sol-do)
+  _playWin() {
+    const ctx = this._ensureAudio();
+    if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const notes = [
+      { f: 523.25, at: 0.00, dur: 0.18 }, // C5
+      { f: 659.25, at: 0.12, dur: 0.18 }, // E5
+      { f: 783.99, at: 0.24, dur: 0.18 }, // G5
+      { f: 1046.5, at: 0.36, dur: 0.55 }, // C6
+    ];
+    notes.forEach(n => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = n.f;
+      const t = t0 + n.at;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.22, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + n.dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + n.dur + 0.02);
+    });
   }
 
   draw() {
@@ -195,6 +273,13 @@ class Wheel {
     const start         = performance.now();
     const startRotation = this.rotation;
 
+    // Ses başlangıcı
+    this._playSpinStart();
+
+    // Tick takibi: pointer hangi dilim sınırını geçtiğini hesapla
+    const sliceDeg = 360 / this.prizes.length;
+    let lastSliceIdx = Math.floor(this.rotation / sliceDeg);
+
     return new Promise(resolve => {
       const animate = (now) => {
         const elapsed = now - start;
@@ -204,10 +289,20 @@ class Wheel {
         this.rotation = startRotation + (targetAngle - startRotation) * eased;
         this.draw();
 
+        // Dilim sınırı geçişinde tick — yavaşladıkça intensity de azalsın
+        const idx = Math.floor(this.rotation / sliceDeg);
+        if (idx !== lastSliceIdx) {
+          const speed = 1 - t; // 1 → 0
+          this._playTick(0.4 + speed * 0.6);
+          lastSliceIdx = idx;
+        }
+
         if (t < 1) {
           requestAnimationFrame(animate);
         } else {
           this.spinning = false;
+          // Kazandı melodisi
+          this._playWin();
           resolve();
         }
       };
