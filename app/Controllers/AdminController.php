@@ -223,26 +223,72 @@ class AdminController
 
     private function uploadBrandingFile(string $field, int $maxMb): ?string
     {
-        $file    = $_FILES[$field];
+        $file    = $_FILES[$field] ?? null;
+        if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            $errCode = $file['error'] ?? -1;
+            $msgMap = [
+                UPLOAD_ERR_INI_SIZE   => 'Dosya PHP upload_max_filesize sınırını aştı.',
+                UPLOAD_ERR_FORM_SIZE  => 'Dosya form sınırını aştı.',
+                UPLOAD_ERR_PARTIAL    => 'Dosya kısmen yüklendi.',
+                UPLOAD_ERR_NO_FILE    => 'Dosya seçilmedi.',
+                UPLOAD_ERR_NO_TMP_DIR => 'Geçici dizin yok.',
+                UPLOAD_ERR_CANT_WRITE => 'Diske yazılamadı.',
+                UPLOAD_ERR_EXTENSION  => 'Bir uzantı upload\'ı durdurdu.',
+            ];
+            $_SESSION['flash_error'] = 'Yükleme hatası: ' . ($msgMap[$errCode] ?? "Kod {$errCode}");
+            return null;
+        }
+
         $maxSize = $maxMb * 1024 * 1024;
         $allowed = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
         $extMap  = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif',
                     'image/webp' => 'webp', 'image/svg+xml' => 'svg'];
 
         if ($file['size'] > $maxSize) {
-            $_SESSION['flash_error'] = "Dosya {$maxMb}MB'den büyük olamaz.";
+            $_SESSION['flash_error'] = "Dosya {$maxMb}MB'den büyük olamaz (boyut: " . round($file['size']/1024/1024, 1) . "MB).";
             return null;
         }
-        $mime = mime_content_type($file['tmp_name']);
+
+        // mime_content_type yoksa finfo veya uzantıdan çöz
+        $mime = null;
+        if (function_exists('mime_content_type')) {
+            $mime = mime_content_type($file['tmp_name']);
+        } elseif (function_exists('finfo_open')) {
+            $f = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = finfo_file($f, $file['tmp_name']);
+            finfo_close($f);
+        } else {
+            $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $mime = ['jpg'=>'image/jpeg','jpeg'=>'image/jpeg','png'=>'image/png',
+                     'gif'=>'image/gif','webp'=>'image/webp','svg'=>'image/svg+xml'][$ext] ?? null;
+        }
+
         if (!in_array($mime, $allowed, true)) {
-            $_SESSION['flash_error'] = 'Geçersiz dosya formatı.';
+            $_SESSION['flash_error'] = 'Geçersiz dosya formatı (' . ($mime ?? 'bilinmeyen') . ').';
             return null;
         }
         $ext      = $extMap[$mime];
         $filename = $field . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
         $destDir  = __DIR__ . '/../../uploads';
-        if (!is_dir($destDir)) mkdir($destDir, 0775, true);
-        move_uploaded_file($file['tmp_name'], $destDir . '/' . $filename);
+
+        if (!is_dir($destDir)) {
+            if (!@mkdir($destDir, 0775, true) && !is_dir($destDir)) {
+                $_SESSION['flash_error'] = 'uploads/ klasörü oluşturulamadı (yazma izni yok): ' . $destDir;
+                return null;
+            }
+        }
+        if (!is_writable($destDir)) {
+            @chmod($destDir, 0775);
+            if (!is_writable($destDir)) {
+                $_SESSION['flash_error'] = 'uploads/ klasörüne yazma izni yok. cPanel\'de chmod 775 yapın: ' . $destDir;
+                return null;
+            }
+        }
+
+        if (!move_uploaded_file($file['tmp_name'], $destDir . '/' . $filename)) {
+            $_SESSION['flash_error'] = 'Dosya taşınamadı: ' . $destDir . '/' . $filename;
+            return null;
+        }
         return '/uploads/' . $filename;
     }
 

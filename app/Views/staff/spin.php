@@ -314,7 +314,7 @@ spinBtn.addEventListener('click', async () => {
       return;
     }
 
-    await wheel.spinTo(data.target_angle, 5000);
+    await wheel.spinTo(data.target_angle, 10000);
 
     location.href = '/staff/win/' + data.participant_id;
 
