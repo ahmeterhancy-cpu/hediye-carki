@@ -134,6 +134,15 @@ class Participant
         return (int)Database::pdo()->query("SELECT COUNT(*) FROM participants")->fetchColumn();
     }
 
+    public static function truncate(): int
+    {
+        $pdo = Database::pdo();
+        $count = (int)$pdo->query("SELECT COUNT(*) FROM participants")->fetchColumn();
+        $pdo->exec("DELETE FROM participants");
+        $pdo->exec("ALTER TABLE participants AUTO_INCREMENT = 1");
+        return $count;
+    }
+
     public static function hourlyToday(): array
     {
         return Database::pdo()->query("

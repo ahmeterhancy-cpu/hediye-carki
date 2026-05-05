@@ -49,6 +49,7 @@ $router->post('/admin/stock/{prize_id}',               [AdminController::class, 
 
 $router->get( '/admin/participants',                   [AdminController::class, 'participants']);
 $router->get( '/admin/participants/export',            [AdminController::class, 'participantsExport']);
+$router->post('/admin/participants/clear',             [AdminController::class, 'participantsClear']);
 $router->get( '/admin/reports',                        [AdminController::class, 'reports']);
 
 $router->get( '/admin/staff-users',                    [AdminController::class, 'staffUsers']);

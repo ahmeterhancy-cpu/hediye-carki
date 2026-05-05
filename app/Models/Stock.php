@@ -26,6 +26,11 @@ class Stock
         ]);
     }
 
+    public static function resetAllToInitial(): int
+    {
+        return (int)Database::pdo()->exec("UPDATE stocks SET remaining_qty = initial_qty");
+    }
+
     public static function status(): array
     {
         return Database::pdo()->query("

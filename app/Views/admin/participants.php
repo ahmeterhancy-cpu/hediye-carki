@@ -3,10 +3,21 @@ $totalPages = max(1, (int)ceil($total / 50));
 ?>
 <div class="flex items-center justify-between mb-6">
   <h1 class="text-2xl font-bold">Katılımcılar <span class="text-gray-400 text-lg">(<?= $total ?>)</span></h1>
-  <a href="/admin/participants/export?<?= http_build_query(array_filter($_GET, fn($k) => $k !== 'page', ARRAY_FILTER_USE_KEY)) ?>"
-     class="bg-green-700 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-lg text-sm">
-    ↓ Excel
-  </a>
+  <div class="flex gap-2">
+    <a href="/admin/participants/export?<?= http_build_query(array_filter($_GET, fn($k) => $k !== 'page', ARRAY_FILTER_USE_KEY)) ?>"
+       class="bg-green-700 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-lg text-sm">
+      ↓ Excel
+    </a>
+    <?php if ($total > 0): ?>
+      <form method="POST" action="/admin/participants/clear"
+            onsubmit="return confirm('UYARI: Tüm <?= $total ?> katılımcı silinecek ve stoklar başlangıç değerlerine sıfırlanacak. Bu işlem geri alınamaz. Devam edilsin mi?') && confirm('Son kez soruyorum — TÜM katılımcı verisi silinecek. Emin misiniz?');">
+        <?= \App\Core\Csrf::field() ?>
+        <button type="submit" class="bg-red-800 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg text-sm">
+          🗑 Test Verilerini Sıfırla
+        </button>
+      </form>
+    <?php endif; ?>
+  </div>
 </div>
 
 <!-- Filtreler -->

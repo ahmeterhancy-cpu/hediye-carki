@@ -317,6 +317,18 @@ class AdminController
         require __DIR__ . '/../Views/admin/participants.php';
     }
 
+    public function participantsClear(): void
+    {
+        Auth::adminCheck();
+        Csrf::check();
+        $deleted = Participant::truncate();
+        $resetCount = Stock::resetAllToInitial();
+        AuditLog::write(Auth::adminId(), 'participants.cleared', 'participants', null,
+            ['deleted' => $deleted, 'stocks_reset' => $resetCount], $this->ip());
+        $_SESSION['flash_success'] = "{$deleted} katılımcı silindi, stoklar başlangıç değerlerine sıfırlandı.";
+        Response::redirect('/admin/participants');
+    }
+
     public function participantsExport(): void
     {
         Auth::adminCheck();
