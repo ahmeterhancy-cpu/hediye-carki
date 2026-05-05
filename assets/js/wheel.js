@@ -21,12 +21,17 @@ class Wheel {
 
   // ── Ses motoru (Web Audio API) ────────────────────────────────
   _ensureAudio() {
-    if (this.audioCtx) return this.audioCtx;
-    try {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (!Ctx) return null;
-      this.audioCtx = new Ctx();
-    } catch(e) { return null; }
+    if (!this.audioCtx) {
+      try {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return null;
+        this.audioCtx = new Ctx();
+      } catch(e) { return null; }
+    }
+    // Chrome autoplay policy: kullanıcı etkileşimine kadar suspended
+    if (this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume().catch(() => {});
+    }
     return this.audioCtx;
   }
 
