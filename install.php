@@ -5,7 +5,7 @@
  * Kurulum bittikten sonra bu dosyayı silin veya yeniden adlandırın.
  */
 
-define('BASE_PATH', dirname(__DIR__));
+define('BASE_PATH', __DIR__);
 define('MAX_AGE_SECS', 3600); // 1 saatte script kendini devre dışı bırakır
 
 // ── Temel güvenlik ─────────────────────────────────────────────────────────
@@ -130,7 +130,7 @@ $dirs = [
     BASE_PATH . '/storage/logs',
     BASE_PATH . '/storage/exports',
     BASE_PATH . '/storage/uploads',
-    BASE_PATH . '/public/uploads',
+    BASE_PATH . '/uploads',
 ];
 foreach ($dirs as $dir) {
     if (!is_dir($dir)) {

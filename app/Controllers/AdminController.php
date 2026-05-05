@@ -240,7 +240,7 @@ class AdminController
         }
         $ext      = $extMap[$mime];
         $filename = $field . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
-        $destDir  = __DIR__ . '/../../public/uploads';
+        $destDir  = __DIR__ . '/../../uploads';
         if (!is_dir($destDir)) mkdir($destDir, 0775, true);
         move_uploaded_file($file['tmp_name'], $destDir . '/' . $filename);
         return '/uploads/' . $filename;
@@ -400,7 +400,7 @@ class AdminController
 
         $ext      = $extMap[$mime];
         $filename = bin2hex(random_bytes(8)) . '.' . $ext;
-        $dest     = __DIR__ . '/../../public/uploads/' . $filename;
+        $dest     = __DIR__ . '/../../uploads/' . $filename;
         if (!is_dir(dirname($dest))) {
             mkdir(dirname($dest), 0775, true);
         }

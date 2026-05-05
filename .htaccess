@@ -1,0 +1,26 @@
+Options -Indexes
+RewriteEngine On
+
+# ── Hassas dosya/klasörleri web'den blokla ─────────────────────────
+RewriteRule ^(app|config|database|vendor|storage|bin|deploy)(/.*)?$ - [F,L]
+RewriteRule ^\.env(\..*)?$ - [F,L]
+RewriteRule ^composer\.(json|lock)$ - [F,L]
+RewriteRule ^\.cpanel\.yml$ - [F,L]
+RewriteRule ^\.git(/.*|ignore|attributes)?$ - [F,L]
+RewriteRule ^README\.md$ - [F,L]
+
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+# ── PHP yönlendirme ──────────────────────────────────────────────
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+# ── Güvenlik başlıkları ──────────────────────────────────────────
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set X-XSS-Protection "1; mode=block"
+</IfModule>

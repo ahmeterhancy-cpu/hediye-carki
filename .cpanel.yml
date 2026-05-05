@@ -1,4 +1,4 @@
 ---
 deployment:
   tasks:
-    - cd /home/erst6559/hediye-carki && mkdir -p storage/logs storage/exports storage/uploads public/uploads && echo "Deployed at $(date)" > storage/deploy.log
+    - export DP=/home/erst6559/public_html && mkdir -p $DP/storage/logs $DP/storage/exports $DP/storage/uploads $DP/uploads && echo "Deploy $(date)" > $DP/storage/deploy.log

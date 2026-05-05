@@ -3,5 +3,5 @@ storage/logs/*.log
 storage/exports/*.xlsx
 storage/uploads/*
 !storage/uploads/.gitkeep
-public/uploads/*
-!public/uploads/.gitkeep
+uploads/*
+!uploads/.gitkeep
