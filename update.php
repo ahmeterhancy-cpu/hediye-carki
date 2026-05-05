@@ -231,26 +231,37 @@ out('Migrationlar çalıştırılıyor...');
 try {
     require_once BASE_PATH . '/vendor/autoload.php';
     $pdo = \App\Core\Database::pdo();
-    $files = glob(BASE_PATH . '/database/migrations/*.sql');
+    $files = array_merge(
+        glob(BASE_PATH . '/database/migrations/*.sql') ?: [],
+        glob(BASE_PATH . '/database/migrations/*.php') ?: []
+    );
     sort($files);
     foreach ($files as $file) {
         $name = basename($file);
         try {
-            $sql = file_get_contents($file);
-            // Çoklu statement desteği için noktalı virgülle ayrılmış parçaları çalıştır
-            foreach (array_filter(array_map('trim', explode(';', $sql))) as $stmt) {
-                if ($stmt === '' || str_starts_with($stmt, '--')) continue;
-                $pdo->exec($stmt);
+            if (str_ends_with($file, '.php')) {
+                // PHP migration — $pdo değişkeni inject edilir
+                (function () use ($pdo, $file) { require $file; })();
+            } else {
+                // SQL migration — noktalı virgülle ayır, tek tek çalıştır
+                $sql = file_get_contents($file);
+                // Yorumları satır bazlı temizle (-- ile başlayan)
+                $sql = preg_replace('/^\s*--.*$/m', '', $sql);
+                foreach (array_filter(array_map('trim', explode(';', $sql))) as $stmt) {
+                    if ($stmt === '') continue;
+                    $pdo->exec($stmt);
+                }
             }
             out('  ✓ ' . htmlspecialchars($name), 'ok');
         } catch (\PDOException $e) {
             $msg = $e->getMessage();
-            // Idempotent migration'lar için bilinen "zaten var" hatalarını warn olarak işaretle
             if (str_contains($msg, 'Duplicate') || str_contains($msg, 'already exists') || str_contains($msg, "Can't DROP")) {
                 out('  ↷ ' . htmlspecialchars($name) . ' (zaten uygulanmış)', 'warn');
             } else {
                 out('  ✗ ' . htmlspecialchars($name) . ': ' . htmlspecialchars($msg), 'err');
             }
+        } catch (\Throwable $e) {
+            out('  ✗ ' . htmlspecialchars($name) . ': ' . htmlspecialchars($e->getMessage()), 'err');
         }
     }
 } catch (\Throwable $e) {
