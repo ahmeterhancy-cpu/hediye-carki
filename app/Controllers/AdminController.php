@@ -269,7 +269,7 @@ class AdminController
         }
         $ext      = $extMap[$mime];
         $filename = $field . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
-        $destDir  = __DIR__ . '/../../uploads';
+        $destDir  = dirname(__DIR__, 2) . '/uploads';
 
         if (!is_dir($destDir)) {
             if (!@mkdir($destDir, 0775, true) && !is_dir($destDir)) {
@@ -606,11 +606,16 @@ class AdminController
 
         $ext      = $extMap[$mime];
         $filename = bin2hex(random_bytes(8)) . '.' . $ext;
-        $dest     = __DIR__ . '/../../uploads/' . $filename;
-        if (!is_dir(dirname($dest))) {
-            mkdir(dirname($dest), 0775, true);
+        $destDir  = dirname(__DIR__, 2) . '/uploads';
+        if (!is_dir($destDir)) {
+            @mkdir($destDir, 0775, true);
         }
-        move_uploaded_file($file['tmp_name'], $dest);
+        @chmod($destDir, 0775);
+        $dest = $destDir . '/' . $filename;
+        if (!move_uploaded_file($file['tmp_name'], $dest)) {
+            $_SESSION['flash_error'] = 'Logo taşınamadı: ' . $dest;
+            Response::redirect('/admin/prizes');
+        }
         return '/uploads/' . $filename;
     }
 }
