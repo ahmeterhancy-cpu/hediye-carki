@@ -1,6 +1,11 @@
 Options -Indexes
 RewriteEngine On
 
+# ── HTTP → HTTPS zorla ───────────────────────────────────────────
+RewriteCond %{HTTPS} off
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
 # ── Hassas dosya/klasörleri web'den blokla ─────────────────────────
 RewriteRule ^(app|config|database|vendor|storage|bin|deploy)(/.*)?$ - [F,L]
 RewriteRule ^\.env(\..*)?$ - [F,L]
@@ -23,4 +28,5 @@ RewriteRule ^ index.php [QSA,L]
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set X-XSS-Protection "1; mode=block"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
 </IfModule>
