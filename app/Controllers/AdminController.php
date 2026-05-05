@@ -269,7 +269,7 @@ class AdminController
         }
         $ext      = $extMap[$mime];
         $filename = $field . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
-        $destDir  = BASE_PATH . '/uploads';
+        $destDir  = BASE_PATH . '/media';
 
         if (!is_dir($destDir)) {
             if (!@mkdir($destDir, 0775, true) && !is_dir($destDir)) {
@@ -277,7 +277,7 @@ class AdminController
                 $parentWritable = is_writable($parent) ? 'YES' : 'NO';
                 $parentOwner = function_exists('posix_getpwuid') ? (posix_getpwuid(fileowner($parent))['name'] ?? '?') : '?';
                 $phpUser = function_exists('posix_getpwuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '?') : '?';
-                $_SESSION['flash_error'] = "uploads/ oluşturulamadı: {$destDir} | parent yazılabilir: {$parentWritable} | parent owner: {$parentOwner} | PHP user: {$phpUser} — update.php çalıştırın.";
+                $_SESSION['flash_error'] = "media/ oluşturulamadı: {$destDir} | parent yazılabilir: {$parentWritable} | parent owner: {$parentOwner} | PHP user: {$phpUser} — update.php çalıştırın.";
                 return null;
             }
         }
@@ -287,7 +287,7 @@ class AdminController
                 $owner = function_exists('posix_getpwuid') ? (posix_getpwuid(fileowner($destDir))['name'] ?? '?') : '?';
                 $phpUser = function_exists('posix_getpwuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '?') : '?';
                 $perms = substr(sprintf('%o', fileperms($destDir)), -4);
-                $_SESSION['flash_error'] = "uploads/ yazılamıyor: {$destDir} | owner: {$owner} | PHP user: {$phpUser} | perm: {$perms} — cPanel'de chown {$phpUser} ve chmod 775 gerek.";
+                $_SESSION['flash_error'] = "media/ yazılamıyor: {$destDir} | owner: {$owner} | PHP user: {$phpUser} | perm: {$perms} — cPanel'de chown {$phpUser} ve chmod 775 gerek.";
                 return null;
             }
         }
@@ -296,7 +296,7 @@ class AdminController
             $_SESSION['flash_error'] = 'Dosya taşınamadı: ' . $destDir . '/' . $filename;
             return null;
         }
-        return '/uploads/' . $filename;
+        return '/media/' . $filename;
     }
 
     // ── Participants ──────────────────────────────────────────────────────
@@ -613,7 +613,7 @@ class AdminController
 
         $ext      = $extMap[$mime];
         $filename = bin2hex(random_bytes(8)) . '.' . $ext;
-        $destDir  = BASE_PATH . '/uploads';
+        $destDir  = BASE_PATH . '/media';
         if (!is_dir($destDir)) {
             @mkdir($destDir, 0775, true);
         }
@@ -623,6 +623,6 @@ class AdminController
             $_SESSION['flash_error'] = 'Logo taşınamadı: ' . $dest;
             Response::redirect('/admin/prizes');
         }
-        return '/uploads/' . $filename;
+        return '/media/' . $filename;
     }
 }

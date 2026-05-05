@@ -3,7 +3,7 @@
  * Self-updater — GitHub'tan en son sürümü çeker, dosyaları yeniler.
  * Kullanım: https://siteniz.com/update.php?secret=INSTALL_SECRET
  *
- * .env, storage/*, uploads/*, vendor/*  korunur.
+ * .env, storage/*, media/*, vendor/*  korunur.
  */
 
 declare(strict_types=1);
@@ -146,6 +146,7 @@ $skipPaths = [
     'storage/exports',
     'storage/uploads',
     'uploads',
+    'media',
 ];
 
 function shouldSkip(string $relPath, array $skip): bool {
@@ -195,7 +196,7 @@ out('✓ Geçici dosyalar silindi.', 'ok');
 
 // ── 6. Yazılabilir klasörleri garanti et ────────────────────────────
 $writableDirs = [
-    BASE_PATH . '/uploads',
+    BASE_PATH . '/media',
     BASE_PATH . '/storage',
     BASE_PATH . '/storage/logs',
     BASE_PATH . '/storage/exports',

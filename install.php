@@ -130,7 +130,7 @@ $dirs = [
     BASE_PATH . '/storage/logs',
     BASE_PATH . '/storage/exports',
     BASE_PATH . '/storage/uploads',
-    BASE_PATH . '/uploads',
+    BASE_PATH . '/media',
 ];
 foreach ($dirs as $dir) {
     if (!is_dir($dir)) {
