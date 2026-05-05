@@ -193,7 +193,31 @@ function rrmdir(string $dir): void {
 rrmdir($tmpDir);
 out('✓ Geçici dosyalar silindi.', 'ok');
 
-// ── 6. Opcache reset (varsa) ────────────────────────────────────────
+// ── 6. Yazılabilir klasörleri garanti et ────────────────────────────
+$writableDirs = [
+    BASE_PATH . '/uploads',
+    BASE_PATH . '/storage',
+    BASE_PATH . '/storage/logs',
+    BASE_PATH . '/storage/exports',
+    BASE_PATH . '/storage/uploads',
+];
+foreach ($writableDirs as $d) {
+    $existed = is_dir($d);
+    if (!$existed) {
+        if (@mkdir($d, 0775, true)) {
+            out('✓ Oluşturuldu: ' . htmlspecialchars($d), 'ok');
+        } else {
+            out('✗ Oluşturulamadı: ' . htmlspecialchars($d) . ' — parent yazılabilir mi? owner: ' . (function_exists('posix_getpwuid') ? (posix_getpwuid(fileowner(dirname($d)))['name'] ?? '?') : '?'), 'err');
+            continue;
+        }
+    }
+    @chmod($d, 0775);
+    if (!is_writable($d)) {
+        out('⚠ Yazılamıyor: ' . htmlspecialchars($d) . ' (chmod başarısız, owner: ' . (function_exists('posix_getpwuid') ? (posix_getpwuid(fileowner($d))['name'] ?? '?') : '?') . ')', 'warn');
+    }
+}
+
+// ── 7. Opcache reset (varsa) ────────────────────────────────────────
 if (function_exists('opcache_reset')) {
     @opcache_reset();
     out('✓ Opcache sıfırlandı.', 'ok');

@@ -273,14 +273,21 @@ class AdminController
 
         if (!is_dir($destDir)) {
             if (!@mkdir($destDir, 0775, true) && !is_dir($destDir)) {
-                $_SESSION['flash_error'] = 'uploads/ klasörü oluşturulamadı (yazma izni yok): ' . $destDir;
+                $parent = dirname($destDir);
+                $parentWritable = is_writable($parent) ? 'YES' : 'NO';
+                $parentOwner = function_exists('posix_getpwuid') ? (posix_getpwuid(fileowner($parent))['name'] ?? '?') : '?';
+                $phpUser = function_exists('posix_getpwuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '?') : '?';
+                $_SESSION['flash_error'] = "uploads/ oluşturulamadı: {$destDir} | parent yazılabilir: {$parentWritable} | parent owner: {$parentOwner} | PHP user: {$phpUser} — update.php çalıştırın.";
                 return null;
             }
         }
         if (!is_writable($destDir)) {
             @chmod($destDir, 0775);
             if (!is_writable($destDir)) {
-                $_SESSION['flash_error'] = 'uploads/ klasörüne yazma izni yok. cPanel\'de chmod 775 yapın: ' . $destDir;
+                $owner = function_exists('posix_getpwuid') ? (posix_getpwuid(fileowner($destDir))['name'] ?? '?') : '?';
+                $phpUser = function_exists('posix_getpwuid') ? (posix_getpwuid(posix_geteuid())['name'] ?? '?') : '?';
+                $perms = substr(sprintf('%o', fileperms($destDir)), -4);
+                $_SESSION['flash_error'] = "uploads/ yazılamıyor: {$destDir} | owner: {$owner} | PHP user: {$phpUser} | perm: {$perms} — cPanel'de chown {$phpUser} ve chmod 775 gerek.";
                 return null;
             }
         }
