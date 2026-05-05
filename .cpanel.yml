@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/erst6559/hediye-carki
+    - cd $DEPLOYPATH && /usr/local/bin/composer install --no-dev --optimize-autoloader 2>&1
+    - mkdir -p $DEPLOYPATH/storage/logs $DEPLOYPATH/storage/exports $DEPLOYPATH/storage/uploads $DEPLOYPATH/public/uploads
