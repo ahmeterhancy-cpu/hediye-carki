@@ -4,4 +4,5 @@ storage/logs/*.log
 storage/exports/*.xlsx
 storage/uploads/*
 !storage/uploads/.gitkeep
-composer.lock
+public/uploads/*
+!public/uploads/.gitkeep
