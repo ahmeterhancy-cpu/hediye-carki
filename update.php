@@ -62,14 +62,54 @@ out('GitHub\'tan ZIP indiriliyor...');
 $zipPath = BASE_PATH . '/storage/_update_' . bin2hex(random_bytes(4)) . '.zip';
 @mkdir(dirname($zipPath), 0775, true);
 
-$ctx  = stream_context_create(['http' => ['timeout' => 60, 'user_agent' => 'PHP-SelfUpdate']]);
-$data = @file_get_contents(REPO_ZIP, false, $ctx);
-if (!$data) {
-    out('✗ ZIP indirilemedi (allow_url_fopen kapalı veya internet erişimi yok).', 'err');
+function downloadZip(string $url, string $dest): array {
+    // 1) cURL (en güvenilir)
+    if (function_exists('curl_init')) {
+        $fp = fopen($dest, 'w');
+        if (!$fp) return [false, 'fopen başarısız'];
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_FILE, $fp);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 90);
+        curl_setopt($ch, CURLOPT_USERAGENT, 'PHP-SelfUpdate');
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_FAILONERROR, true);
+        $ok   = curl_exec($ch);
+        $err  = curl_error($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        fclose($fp);
+        if ($ok && $code === 200 && filesize($dest) > 0) {
+            return [true, 'curl'];
+        }
+        @unlink($dest);
+        $curlMsg = "cURL: " . ($err ?: "HTTP {$code}");
+    } else {
+        $curlMsg = 'cURL yok';
+    }
+
+    // 2) file_get_contents fallback
+    if (ini_get('allow_url_fopen')) {
+        $ctx  = stream_context_create(['http' => ['timeout' => 90, 'user_agent' => 'PHP-SelfUpdate']]);
+        $data = @file_get_contents($url, false, $ctx);
+        if ($data && file_put_contents($dest, $data)) {
+            return [true, 'fopen'];
+        }
+        $curlMsg .= ' / file_get_contents başarısız';
+    } else {
+        $curlMsg .= ' / allow_url_fopen kapalı';
+    }
+
+    return [false, $curlMsg];
+}
+
+[$ok, $msg] = downloadZip(REPO_ZIP, $zipPath);
+if (!$ok) {
+    out('✗ ZIP indirilemedi: ' . htmlspecialchars($msg), 'err');
+    out('Hosting destekten cURL veya allow_url_fopen aktivasyonu isteyin.', 'warn');
     exit;
 }
-file_put_contents($zipPath, $data);
-out('✓ ZIP indirildi (' . round(strlen($data) / 1024) . ' KB)', 'ok');
+out('✓ ZIP indirildi (' . round(filesize($zipPath) / 1024) . ' KB, yöntem: ' . $msg . ')', 'ok');
 
 // ── 2. Extract ──────────────────────────────────────────────────────
 $tmpDir = BASE_PATH . '/storage/_update_extract_' . bin2hex(random_bytes(4));
