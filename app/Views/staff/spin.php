@@ -287,6 +287,10 @@ const errorMap = {
 };
 
 spinBtn.addEventListener('click', async () => {
+  // KRİTİK: AudioContext'i click event içinde HEMEN başlat
+  // (Chrome autoplay policy fetch sonrası user-gesture'ı kabul etmeyebilir)
+  wheel._ensureAudio();
+
   spinBtn.disabled = true;
   spinBtn.textContent = '...';
 
