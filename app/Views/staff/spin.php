@@ -287,9 +287,8 @@ const errorMap = {
 };
 
 spinBtn.addEventListener('click', async () => {
-  // KRİTİK: AudioContext'i click event içinde HEMEN başlat
-  // (Chrome autoplay policy fetch sonrası user-gesture'ı kabul etmeyebilir)
-  wheel._ensureAudio();
+  // AudioContext'i click event içinde HEMEN unlock et (Chrome autoplay policy)
+  try { wheel._ensureAudio && wheel._ensureAudio(); } catch(e) {}
 
   spinBtn.disabled = true;
   spinBtn.textContent = '...';
