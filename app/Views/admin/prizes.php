@@ -7,6 +7,29 @@
   </button>
 </div>
 
+<?php $activePrizes = array_values(array_filter($prizes, fn($p) => (int)($p['is_active'] ?? 0) === 1)); ?>
+<div class="bg-gray-800 rounded-xl p-6 mb-6 flex flex-col md:flex-row items-center gap-6">
+  <div class="shrink-0">
+    <canvas id="previewCanvas" width="380" height="380" class="block"></canvas>
+  </div>
+  <div class="text-sm text-gray-300 flex-1">
+    <h2 class="text-lg font-bold text-white mb-2">Çark Önizleme</h2>
+    <p class="text-gray-400 mb-3">
+      Aktif <strong class="text-white"><?= count($activePrizes) ?></strong> dilim çarkta gösteriliyor.
+      Sıra, renk veya marka değişikliği yaptıktan sonra sayfayı yenileyin.
+    </p>
+    <?php if (count($activePrizes) === 0): ?>
+      <div class="bg-yellow-900/30 border border-yellow-700 text-yellow-200 px-3 py-2 rounded text-xs">
+        ⚠ Çarkta gösterilecek aktif dilim yok. Aşağıdan ekleyin veya pasif dilimleri aktifleştirin.
+      </div>
+    <?php elseif (count($activePrizes) < 4): ?>
+      <div class="bg-blue-900/30 border border-blue-700 text-blue-200 px-3 py-2 rounded text-xs">
+        ℹ En az 4 dilim önerilir — şu an <?= count($activePrizes) ?> dilim var.
+      </div>
+    <?php endif; ?>
+  </div>
+</div>
+
 <div class="bg-gray-800 rounded-xl overflow-hidden">
   <table class="w-full text-sm" id="prizeTable">
     <thead><tr class="text-gray-400 text-left border-b border-gray-700 bg-gray-900">
@@ -159,7 +182,13 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script src="/assets/js/wheel.js?v=<?= filemtime(BASE_PATH . '/assets/js/wheel.js') ?>"></script>
 <script>
+const previewPrizes = <?= json_encode($activePrizes) ?>;
+if (previewPrizes.length > 0) {
+  new Wheel(document.getElementById('previewCanvas'), previewPrizes);
+}
+
 function openEdit(p) {
   document.getElementById('editForm').action  = '/admin/prizes/' + p.id;
   document.getElementById('editName').value   = p.name;

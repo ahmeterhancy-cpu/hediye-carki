@@ -225,8 +225,8 @@
 }
 </style>
 
-<script src="/assets/js/wheel.js"></script>
-<script src="/assets/js/confetti.js"></script>
+<script src="/assets/js/wheel.js?v=<?= filemtime(BASE_PATH . '/assets/js/wheel.js') ?>"></script>
+<script src="/assets/js/confetti.js?v=<?= filemtime(BASE_PATH . '/assets/js/confetti.js') ?>"></script>
 <script>
 const prizes = <?= json_encode($prizes) ?>;
 const csrfToken = <?= json_encode(\App\Core\Csrf::token()) ?>;
