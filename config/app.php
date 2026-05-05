@@ -1,6 +1,8 @@
 <?php
 
-$env = parse_ini_file(__DIR__ . '/../.env') ?: [];
+require_once __DIR__ . '/../app/Core/EnvLoader.php';
+
+$env = \App\Core\EnvLoader::load(__DIR__ . '/../.env');
 
 return [
     'url'     => $env['APP_URL']   ?? 'http://localhost',
