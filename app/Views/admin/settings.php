@@ -12,7 +12,7 @@
       <label class="block text-sm text-gray-400 mb-1">Firma Adı</label>
       <input type="text" name="company_name"
              value="<?= htmlspecialchars($settings['company_name'] ?? '', ENT_QUOTES, 'UTF-8') ?>"
-             placeholder="örn: Erasta Edirne AVM"
+             placeholder="örn: Unifex Edirne AVM"
              class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white">
       <p class="text-xs text-gray-500 mt-1">Müşteri ekranlarında üst başlıkta gösterilir.</p>
     </div>
