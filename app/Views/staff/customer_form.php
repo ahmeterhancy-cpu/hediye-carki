@@ -76,19 +76,6 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-200">
-        <div>
-          <label class="block text-slate-500 text-xs mb-1">Fiş No <span class="text-slate-400">(ops.)</span></label>
-          <input type="text" name="receipt_no"
-                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-800 text-sm">
-        </div>
-        <div>
-          <label class="block text-slate-500 text-xs mb-1">Tutar TL <span class="text-slate-400">(ops.)</span></label>
-          <input type="number" name="receipt_amount" min="0" step="0.01"
-                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-800 text-sm">
-        </div>
-      </div>
-
       <label class="flex items-start gap-2 pt-1">
         <input type="checkbox" name="kvkk" required class="mt-1 w-5 h-5 rounded text-orange-500">
         <span class="text-slate-600 text-xs">
